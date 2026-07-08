@@ -2,10 +2,11 @@
 // Calls Claude and displays the comfort map result.
 // Handles loading state, errors, follow-up questions, and saving.
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { getComfortMap, askFollowUp } from '../utils/claude'
+import { hasReachedDailyLimit, recordMapGenerated, DAILY_MAP_LIMIT } from '../utils/rateLimit'
 import { getText } from '../data/languages'
 import { RADIUS, BRAND_GRADIENT } from '../styles/colors'
 import Header from '../components/Header'
@@ -159,6 +160,8 @@ export default function ResultScreen() {
   const [followUpLoading, setFollowUpLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const [feedback, setFeedback] = useState(null)
+  const [limitReached, setLimitReached] = useState(false)
+  const runningRef = useRef(false)
 
   // Run the AI call on mount
   useEffect(() => {
@@ -167,11 +170,19 @@ export default function ResultScreen() {
   }, [])
 
   const runComfortMap = async () => {
+    if (runningRef.current) return
+    if (hasReachedDailyLimit()) {
+      setLimitReached(true)
+      return
+    }
+    runningRef.current = true
     setLoading(true)
     setError('')
+    setLimitReached(false)
     setFeedback(null)
     try {
       const result = await getComfortMap({ userMessage: prompt, sensory, who, lang })
+      recordMapGenerated()
       setResponse(result)
       setHistory([
         { role: 'user', content: prompt },
@@ -181,6 +192,7 @@ export default function ResultScreen() {
       setError(err.message)
     }
     setLoading(false)
+    runningRef.current = false
   }
 
   const handleFollowUp = async (question) => {
@@ -209,6 +221,33 @@ export default function ResultScreen() {
     })
     setSaved(true)
   }
+
+  // Daily limit reached
+  if (limitReached) return (
+    <div style={{
+      minHeight: '100vh',
+      background: COLORS.soft,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      padding: 32,
+    }}>
+      <div style={{ fontSize: 52, marginBottom: 16 }}>🌙</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
+        You've used your {DAILY_MAP_LIMIT} comfort maps for today
+      </div>
+      <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 280, lineHeight: 1.6, marginBottom: 28 }}>
+        Take a breath — your maps will refresh tomorrow. Come back then for more.
+      </div>
+      <div style={{ width: '100%', maxWidth: 280 }}>
+        <GhostButton onClick={() => navigate('/home')}>
+          ← Back to home
+        </GhostButton>
+      </div>
+    </div>
+  )
 
   // Loading state
   if (loading) return (
