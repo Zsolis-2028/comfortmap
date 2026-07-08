@@ -158,6 +158,7 @@ export default function ResultScreen() {
   const [followUpInput, setFollowUpInput] = useState('')
   const [followUpLoading, setFollowUpLoading] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [feedback, setFeedback] = useState(null)
 
   // Run the AI call on mount
   useEffect(() => {
@@ -168,6 +169,7 @@ export default function ResultScreen() {
   const runComfortMap = async () => {
     setLoading(true)
     setError('')
+    setFeedback(null)
     try {
       const result = await getComfortMap({ userMessage: prompt, sensory, who, lang })
       setResponse(result)
@@ -186,6 +188,7 @@ export default function ResultScreen() {
     if (!q) return
     setFollowUpLoading(true)
     setFollowUpInput('')
+    setFeedback(null)
     try {
       const result = await askFollowUp({ followUp: q, sensory, who, lang, conversationHistory: history })
       const newHistory = [...history, { role: 'user', content: q }, { role: 'assistant', content: result }]
@@ -268,6 +271,62 @@ export default function ResultScreen() {
             className: 'fade-in',
           }}>
             <FormattedResponse text={response} />
+
+            <div style={{
+              marginTop: 18,
+              paddingTop: 14,
+              borderTop: `1px solid ${COLORS.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 32,
+            }}>
+              {feedback ? (
+                <div style={{ fontSize: 13, color: COLORS.muted }}>
+                  Thanks for letting us know 🌿
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 13, color: COLORS.muted }}>Was this helpful?</span>
+                  <button
+                    onClick={() => setFeedback('up')}
+                    aria-label="Yes, this was helpful"
+                    style={{
+                      background: 'none',
+                      border: `1.5px solid ${COLORS.border}`,
+                      borderRadius: RADIUS.pill,
+                      width: 32,
+                      height: 32,
+                      fontSize: 15,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    👍
+                  </button>
+                  <button
+                    onClick={() => setFeedback('down')}
+                    aria-label="No, this was not helpful"
+                    style={{
+                      background: 'none',
+                      border: `1.5px solid ${COLORS.border}`,
+                      borderRadius: RADIUS.pill,
+                      width: 32,
+                      height: 32,
+                      fontSize: 15,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    👎
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

@@ -8,18 +8,18 @@
 // which resolves based on the user's Dark Mode setting.
 
 export const COLORS = {
-  // Brand
-  forest:   '#1b4332',
-  green:    '#2d6a4f',
-  mint:     '#40916c',
-  pale:     '#d8f3dc',
-  soft:     '#f0fdf4',
+  // Brand — warm cream & sage
+  forest:   '#4A7C59', // dark green — headings, high-emphasis text
+  green:    '#4A7C59', // dark green — body-weight brand text/icons (kept legible on cream)
+  mint:     '#4A7C59', // dark green — accent labels & bullets (needs contrast on cards)
+  pale:     '#E8EDE0', // light sage tint — icon circle backgrounds
+  soft:     '#FDFAF5', // warm cream — primary app background
 
   // UI
-  white:    '#ffffff',
+  white:    '#F5F0E8', // card surface
   text:     '#1a202c',
   muted:    '#6b7280',
-  border:   '#bbf7d0',
+  border:   '#C8D5B9',
 
   // Status
   warn:     '#fef3c7',
@@ -32,18 +32,18 @@ export const COLORS = {
 }
 
 export const DARK_COLORS = {
-  // Brand (kept legible on dark surfaces)
-  forest:   '#eafbf1',
-  green:    '#7cc9a0',
-  mint:     '#52c98f',
-  pale:     '#1c3327',
-  soft:     '#0f1a14',
+  // Brand (sage family, kept legible on dark surfaces)
+  forest:   '#E8EDE0',
+  green:    '#9CB89E',
+  mint:     '#9CB89E',
+  pale:     '#2A3527',
+  soft:     '#1C211A',
 
   // UI
-  white:    '#182a20',
-  text:     '#e8f5ee',
-  muted:    '#93ab9f',
-  border:   '#2a4536',
+  white:    '#242A20',
+  text:     '#EDEAE0',
+  muted:    '#A3A895',
+  border:   '#3D4A38',
 
   // Status
   warn:     '#3a2f12',
@@ -58,7 +58,7 @@ export const DARK_COLORS = {
 // The primary-button / hero-banner gradient is a fixed brand mark — it
 // always pairs with white text, so it intentionally does not change
 // between light and dark theme.
-export const BRAND_GRADIENT = 'linear-gradient(135deg, #1b4332, #2d6a4f)'
+export const BRAND_GRADIENT = 'linear-gradient(135deg, #4A7C59, #7C9A7E)'
 
 export const RADIUS = {
   sm:  '8px',
@@ -70,5 +70,5 @@ export const RADIUS = {
 
 export const SHADOW = {
   card: '0 2px 12px rgba(0,0,0,0.06)',
-  header: '0 1px 0 #bbf7d0',
+  header: '0 1px 0 #C8D5B9',
 }

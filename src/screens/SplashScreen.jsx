@@ -25,7 +25,7 @@ export default function SplashScreen() {
       textAlign: 'center',
       background: isDark
         ? `linear-gradient(160deg, ${COLORS.soft} 0%, #0b140f 60%, #060a08 100%)`
-        : `linear-gradient(160deg, ${COLORS.soft} 0%, #ecfdf5 60%, #f0f9ff 100%)`,
+        : `linear-gradient(160deg, ${COLORS.soft} 0%, ${COLORS.white} 60%, ${COLORS.pale} 100%)`,
       padding: 32,
     }}>
       <div style={{ fontSize: 80, marginBottom: 20, animation: 'pulse 3s ease-in-out infinite' }}>🗺️</div>
