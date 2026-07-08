@@ -1,0 +1,378 @@
+// ResultScreen.jsx
+// Calls Claude and displays the comfort map result.
+// Handles loading state, errors, follow-up questions, and saving.
+
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useUser } from '../context/UserContext'
+import { getComfortMap, askFollowUp } from '../utils/claude'
+import { getText } from '../data/languages'
+import { RADIUS, BRAND_GRADIENT } from '../styles/colors'
+import Header from '../components/Header'
+import Screen from '../components/Screen'
+import NavBar from '../components/NavBar'
+import { GhostButton } from '../components/Button'
+
+const FOLLOW_UP_SUGGESTIONS_BY_LANG = {
+  en: [
+    'Give me a step-by-step walkthrough',
+    "What's the best time to go?",
+    'Is there a quiet entrance or area?',
+    'Create a low-stress plan for this visit',
+    'What should I say to staff?',
+    'How do I leave quickly if I need to?',
+  ],
+  es: [
+    'Dame un recorrido paso a paso',
+    '¿Cuál es el mejor momento para ir?',
+    '¿Hay una entrada o área tranquila?',
+    'Crea un plan sin estrés para esta visita',
+    '¿Qué debo decirle al personal?',
+    '¿Cómo puedo salir rápido si lo necesito?',
+  ],
+  fr: [
+    'Donne-moi un guide étape par étape',
+    'Quel est le meilleur moment pour y aller ?',
+    'Y a-t-il une entrée ou une zone tranquille ?',
+    'Crée un plan sans stress pour cette visite',
+    'Que dois-je dire au personnel ?',
+    'Comment partir rapidement si j\'en ai besoin ?',
+  ],
+  de: [
+    'Gib mir eine Schritt-für-Schritt-Anleitung',
+    'Wann ist die beste Zeit zum Hingehen?',
+    'Gibt es einen ruhigen Eingang oder Bereich?',
+    'Erstelle einen stressfreien Plan für diesen Besuch',
+    'Was soll ich dem Personal sagen?',
+    'Wie kann ich schnell gehen, wenn ich es brauche?',
+  ],
+  pt: [
+    'Me dê um passo a passo',
+    'Qual é o melhor horário para ir?',
+    'Há uma entrada ou área tranquila?',
+    'Crie um plano sem estresse para esta visita',
+    'O que devo dizer ao funcionário?',
+    'Como saio rapidamente se precisar?',
+  ],
+  ar: [
+    'أعطني شرحاً خطوة بخطوة',
+    'ما هو أفضل وقت للذهاب؟',
+    'هل يوجد مدخل أو منطقة هادئة؟',
+    'أنشئ خطة منخفضة التوتر لهذه الزيارة',
+    'ماذا أقول للموظفين؟',
+    'كيف أغادر بسرعة إذا احتجت ذلك؟',
+  ],
+  zh: [
+    '给我一个逐步指引',
+    '什么时候去最好？',
+    '有没有安静的入口或区域？',
+    '为这次参观制定一个低压力计划',
+    '我应该对工作人员说什么？',
+    '如果需要，我怎么快速离开？',
+  ],
+  ja: [
+    'ステップごとに説明してください',
+    '行くのに最適な時間はいつですか？',
+    '静かな入口やエリアはありますか？',
+    'この訪問のストレスの少ない計画を作ってください',
+    'スタッフに何と言えばいいですか？',
+    '必要なときにすぐ退席するにはどうすればいいですか？',
+  ],
+  hi: [
+    'मुझे चरण-दर-चरण मार्गदर्शन दें',
+    'जाने का सबसे अच्छा समय कब है?',
+    'क्या कोई शांत प्रवेश द्वार या क्षेत्र है?',
+    'इस यात्रा के लिए कम तनाव वाली योजना बनाएं',
+    'कर्मचारियों से मुझे क्या कहना चाहिए?',
+    'अगर जरूरत हो तो मैं जल्दी कैसे निकलूं?',
+  ],
+  ko: [
+    '단계별로 설명해 주세요',
+    '언제 가는 게 가장 좋나요?',
+    '조용한 입구나 공간이 있나요?',
+    '이번 방문을 위한 스트레스 없는 계획을 세워주세요',
+    '직원에게 뭐라고 말해야 하나요?',
+    '필요하면 어떻게 빨리 나갈 수 있나요?',
+  ],
+}
+
+// Render markdown-style bold and bullet formatting from AI response
+function FormattedResponse({ text }) {
+  const { COLORS } = useUser()
+  if (!text) return null
+  return (
+    <div>
+      {text.split('\n').map((line, i) => {
+        if (line.startsWith('**') && line.endsWith('**')) {
+          return (
+            <div key={i} style={{ fontWeight: 700, color: COLORS.mint, marginTop: 20, marginBottom: 6, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 }}>
+              {line.replace(/\*\*/g, '')}
+            </div>
+          )
+        }
+        if (line.match(/^\*\*(.*)\*\*/)) {
+          return (
+            <div key={i} style={{ fontWeight: 700, color: COLORS.mint, marginTop: 20, marginBottom: 6, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 }}>
+              {line.replace(/\*\*(.*?)\*\*/g, '$1')}
+            </div>
+          )
+        }
+        if (line.startsWith('• ') || line.startsWith('- ')) {
+          return (
+            <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 14, color: COLORS.text, lineHeight: 1.55 }}>
+              <span style={{ color: COLORS.mint, flexShrink: 0, fontWeight: 700 }}>•</span>
+              <span>{line.slice(2)}</span>
+            </div>
+          )
+        }
+        if (line.match(/^\d+\./)) {
+          const num = line.match(/^(\d+)\./)[1]
+          const content = line.replace(/^\d+\.\s*/, '')
+          return (
+            <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10, fontSize: 14, color: COLORS.text, lineHeight: 1.55 }}>
+              <span style={{ color: COLORS.mint, fontWeight: 700, flexShrink: 0, fontSize: 12, marginTop: 2, minWidth: 16 }}>{num}</span>
+              <span>{content}</span>
+            </div>
+          )
+        }
+        if (line.trim() === '') return <div key={i} style={{ height: 4 }} />
+        return <div key={i} style={{ fontSize: 15, color: COLORS.text, lineHeight: 1.65, marginBottom: 4 }}>{line}</div>
+      })}
+    </div>
+  )
+}
+
+export default function ResultScreen() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { lang, sensory, who, saveMap, COLORS } = useUser()
+  const t = getText(lang)
+  const FOLLOW_UP_SUGGESTIONS = FOLLOW_UP_SUGGESTIONS_BY_LANG[lang] || FOLLOW_UP_SUGGESTIONS_BY_LANG.en
+
+  const { prompt, venue } = location.state || {}
+
+  const [response, setResponse] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [history, setHistory] = useState([])
+  const [followUpInput, setFollowUpInput] = useState('')
+  const [followUpLoading, setFollowUpLoading] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  // Run the AI call on mount
+  useEffect(() => {
+    if (!prompt) { navigate('/home'); return }
+    runComfortMap()
+  }, [])
+
+  const runComfortMap = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const result = await getComfortMap({ userMessage: prompt, sensory, who, lang })
+      setResponse(result)
+      setHistory([
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: result },
+      ])
+    } catch (err) {
+      setError(err.message)
+    }
+    setLoading(false)
+  }
+
+  const handleFollowUp = async (question) => {
+    const q = question || followUpInput.trim()
+    if (!q) return
+    setFollowUpLoading(true)
+    setFollowUpInput('')
+    try {
+      const result = await askFollowUp({ followUp: q, sensory, who, lang, conversationHistory: history })
+      const newHistory = [...history, { role: 'user', content: q }, { role: 'assistant', content: result }]
+      setHistory(newHistory)
+      setResponse(result)
+    } catch (err) {
+      setError(err.message)
+    }
+    setFollowUpLoading(false)
+  }
+
+  const handleSave = () => {
+    saveMap({
+      venue: venue?.emoji || '📍',
+      name: prompt.slice(0, 50),
+      type: venue?.key || 'custom',
+      response,
+    })
+    setSaved(true)
+  }
+
+  // Loading state
+  if (loading) return (
+    <div style={{
+      minHeight: '100vh',
+      background: COLORS.soft,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      padding: 32,
+    }}>
+      <div style={{ fontSize: 60, marginBottom: 20, animation: 'pulse 1.5s ease-in-out infinite' }}>🗺️</div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
+        Building your comfort map...
+      </div>
+      <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 260, lineHeight: 1.6 }}>
+        Scanning noise, crowds, sensory triggers, and what to expect.
+      </div>
+      <style>{`@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}`}</style>
+    </div>
+  )
+
+  return (
+    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+      <Header
+        title={t.yourMap || 'Your Comfort Map'}
+        onBack={() => navigate('/home')}
+        onRight={!saved ? handleSave : undefined}
+        rightLabel={saved ? '✓ Saved' : (t.saveMap || '🔖 Save')}
+      />
+      <Screen>
+        {/* Error state */}
+        {error && (
+          <div style={{
+            marginTop: 16,
+            background: COLORS.error,
+            border: `1px solid ${COLORS.errorText}55`,
+            borderRadius: RADIUS.md,
+            padding: '12px 16px',
+            color: COLORS.errorText,
+            fontSize: 14,
+          }}>
+            {error}
+            <button onClick={runComfortMap} style={{ marginLeft: 8, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.errorText, fontSize: 14 }}>
+              Try again
+            </button>
+          </div>
+        )}
+
+        {/* AI Response */}
+        {response && (
+          <div style={{
+            background: COLORS.white,
+            border: `1.5px solid ${COLORS.border}`,
+            borderRadius: RADIUS.xl,
+            padding: '20px 20px 16px',
+            marginTop: 16,
+            className: 'fade-in',
+          }}>
+            <FormattedResponse text={response} />
+          </div>
+        )}
+
+        {/* Follow-up suggestions */}
+        {response && !followUpLoading && (
+          <div style={{ marginTop: 20 }}>
+            <div style={{ fontSize: 13, color: COLORS.muted, fontWeight: 600, marginBottom: 10 }}>
+              💬 {t.wantMore || 'Want to know more?'}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+              {FOLLOW_UP_SUGGESTIONS.map(q => (
+                <button
+                  key={q}
+                  onClick={() => handleFollowUp(q)}
+                  style={{
+                    background: COLORS.white,
+                    border: `1.5px solid ${COLORS.border}`,
+                    borderRadius: RADIUS.md,
+                    padding: '11px 14px',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    color: COLORS.forest,
+                    textAlign: 'left',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = COLORS.soft}
+                  onMouseLeave={e => e.currentTarget.style.background = COLORS.white}
+                >
+                  {q} →
+                </button>
+              ))}
+            </div>
+
+            {/* Custom follow-up input */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                value={followUpInput}
+                onChange={e => setFollowUpInput(e.target.value)}
+                placeholder="Or ask anything else..."
+                onKeyDown={e => { if (e.key === 'Enter') handleFollowUp() }}
+                style={{
+                  flex: 1,
+                  borderRadius: RADIUS.md,
+                  border: `1.5px solid ${COLORS.border}`,
+                  padding: '11px 14px',
+                  fontSize: 14,
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  background: COLORS.white,
+                  color: COLORS.text,
+                }}
+              />
+              <button
+                onClick={() => handleFollowUp()}
+                disabled={!followUpInput.trim()}
+                style={{
+                  background: BRAND_GRADIENT,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: RADIUS.md,
+                  padding: '11px 18px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Ask →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {followUpLoading && (
+          <div style={{ textAlign: 'center', padding: '24px', color: COLORS.muted, fontSize: 14 }}>
+            Thinking...
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 20 }}>
+          {[
+            ['📤 Share', () => {}],
+            ['🔄 Regenerate', runComfortMap],
+          ].map(([label, action]) => (
+            <button key={label} onClick={action} style={{
+              background: COLORS.white,
+              border: `1.5px solid ${COLORS.border}`,
+              borderRadius: RADIUS.md,
+              padding: '13px',
+              fontSize: 14,
+              color: COLORS.forest,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <GhostButton onClick={() => navigate('/home')}>
+          {t.newMap || '← Start a new map'}
+        </GhostButton>
+      </Screen>
+      <NavBar />
+    </div>
+  )
+}

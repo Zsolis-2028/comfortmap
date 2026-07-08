@@ -1,0 +1,79 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+  background: #f0fdf4;
+  color: #1a202c;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+}
+
+textarea, input {
+  font-family: inherit;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #bbf7d0; border-radius: 4px; }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.85; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* Text size setting — scales the whole app shell so layout reflows
+   correctly (unlike transform:scale, zoom keeps fixed/sticky elements
+   positioned relative to the scaled box). */
+html[data-text-size="small"] #root  { zoom: 0.88; }
+html[data-text-size="medium"] #root { zoom: 1; }
+html[data-text-size="large"] #root  { zoom: 1.15; }
+html[data-text-size="xlarge"] #root { zoom: 1.3; }
+
+/* Accessibility mode — reduces motion and makes keyboard focus visible.
+   !important is needed here because every animation/style it overrides
+   is set inline on the element. */
+.accessibility-mode *,
+.accessibility-mode *::before,
+.accessibility-mode *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+.accessibility-mode button:focus-visible,
+.accessibility-mode a:focus-visible,
+.accessibility-mode input:focus-visible,
+.accessibility-mode textarea:focus-visible {
+  outline: 3px solid #2d6a4f !important;
+  outline-offset: 2px !important;
+}

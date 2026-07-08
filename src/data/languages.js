@@ -1,0 +1,133 @@
+// All supported languages
+// Add new languages here — the whole app picks them up automatically
+
+// flagCode is the ISO 3166-1 alpha-2 country code used to look up a flag
+// image from flagcdn.com. We render flags as images rather than Unicode
+// flag emoji because many Windows browsers and Android OEM skins have no
+// flag glyphs in their system emoji font and fall back to showing the
+// literal letter code (e.g. "GB") instead of a flag.
+export const LANGUAGES = [
+  { code: 'en', flagCode: 'gb', label: 'English',    dir: 'ltr' },
+  { code: 'es', flagCode: 'es', label: 'Español',    dir: 'ltr' },
+  { code: 'fr', flagCode: 'fr', label: 'Français',   dir: 'ltr' },
+  { code: 'de', flagCode: 'de', label: 'Deutsch',    dir: 'ltr' },
+  { code: 'pt', flagCode: 'br', label: 'Português',  dir: 'ltr' },
+  { code: 'ar', flagCode: 'sa', label: 'العربية',    dir: 'rtl' },
+  { code: 'zh', flagCode: 'cn', label: '中文',        dir: 'ltr' },
+  { code: 'ja', flagCode: 'jp', label: '日本語',      dir: 'ltr' },
+  { code: 'hi', flagCode: 'in', label: 'हिन्दी',      dir: 'ltr' },
+  { code: 'ko', flagCode: 'kr', label: '한국어',      dir: 'ltr' },
+]
+
+export const getFlagUrl = (flagCode, width = 40) => `https://flagcdn.com/w${width}/${flagCode}.png`
+
+// UI strings per language
+// The AI responds in whatever language the user writes in automatically.
+// These strings are for the app shell UI only.
+
+export const UI_TEXT = {
+  en: {
+    tagline:         'Know before you go.',
+    whereGoing:      'Where are you going?',
+    prepareYou:      'Tell us about the place. We\'ll prepare you.',
+    buildMap:        'Build My Comfort Map →',
+    buildingMap:     'Building your comfort map...',
+    pickPlace:       'Or pick a place type',
+    addDetails:      'Add any details you know — name, location, what you\'re going for.',
+    whatMatters:     'What matters most to you?',
+    skipDetails:     'Skip details — just give me basics',
+    yourMap:         'Your Comfort Map',
+    summary:         'Summary',
+    comfortFactors:  'Comfort Factors',
+    whatToExpect:    'What to Expect',
+    tips:            'Tips for a Smoother Visit',
+    wantMore:        'Want to know more?',
+    saveMap:         '🔖 Save',
+    shareMap:        '📤 Share',
+    newMap:          '← Start a new map',
+    savedMaps:       'Saved Maps',
+    noSaved:         'No saved maps yet.',
+    settings:        'Settings',
+    language:        'Language',
+    whoFor:          'Who is this for',
+    sensoryProfile:  'Sensory Profile',
+    activeSens:      'Active sensitivities',
+    editSens:        'Edit sensory profile',
+    display:         'Display',
+    textSize:        'Text size',
+    darkMode:        'Dark mode',
+    accessibility:   'Accessibility mode',
+    about:           'About',
+    aboutApp:        'About ComfortMap',
+    privacy:         'Privacy policy',
+    rate:            'Rate the app',
+    saveAndContinue: 'Save & continue →',
+    skipSensory:     'Skip — no sensitivities',
+    skipForNow:      'Skip for now',
+    chooseLanguage:  'Choose your language',
+    langSubtitle:    'ComfortMap speaks your language. Change anytime.',
+    whoTitle:        'Who is this for?',
+    whoSubtitle:     'ComfortMap personalizes every map based on who\'s using it.',
+    sensoryTitle:    'Sensory profile',
+    sensorySubtitle: 'Select any sensitivities to watch for. ComfortMap flags these in every map.',
+    getStarted:      'Get Started →',
+    sensoryActive:   '✓ Sensory profile active',
+    explore:         'Explore',
+    saved:           'Saved',
+    notSet:          'Not set',
+  },
+  es: {
+    tagline:         'Sabe antes de ir.',
+    whereGoing:      '¿A dónde vas?',
+    prepareYou:      'Cuéntanos el lugar. Te prepararemos.',
+    buildMap:        'Crear mi Mapa de Comodidad →',
+    buildingMap:     'Creando tu mapa...',
+    pickPlace:       'O elige un tipo de lugar',
+    addDetails:      'Añade detalles — nombre, ubicación, para qué vas.',
+    whatMatters:     '¿Qué te importa más?',
+    skipDetails:     'Omitir detalles',
+    yourMap:         'Tu Mapa de Comodidad',
+    summary:         'Resumen',
+    comfortFactors:  'Factores de Comodidad',
+    whatToExpect:    'Qué Esperar',
+    tips:            'Consejos para una Visita sin Estrés',
+    wantMore:        '¿Quieres saber más?',
+    saveMap:         '🔖 Guardar',
+    shareMap:        '📤 Compartir',
+    newMap:          '← Nuevo mapa',
+    savedMaps:       'Mapas Guardados',
+    noSaved:         'Aún no hay mapas guardados.',
+    settings:        'Configuración',
+    language:        'Idioma',
+    whoFor:          'Para quién es',
+    sensoryProfile:  'Perfil Sensorial',
+    activeSens:      'Sensibilidades activas',
+    editSens:        'Editar perfil sensorial',
+    display:         'Pantalla',
+    textSize:        'Tamaño de texto',
+    darkMode:        'Modo oscuro',
+    accessibility:   'Modo accesibilidad',
+    about:           'Acerca de',
+    aboutApp:        'Acerca de ComfortMap',
+    privacy:         'Política de privacidad',
+    rate:            'Valorar la app',
+    saveAndContinue: 'Guardar y continuar →',
+    skipSensory:     'Omitir — sin sensibilidades',
+    skipForNow:      'Omitir por ahora',
+    chooseLanguage:  'Elige tu idioma',
+    langSubtitle:    'ComfortMap habla tu idioma.',
+    whoTitle:        '¿Para quién es?',
+    whoSubtitle:     'ComfortMap personaliza cada mapa.',
+    sensoryTitle:    'Perfil sensorial',
+    sensorySubtitle: 'Selecciona sensibilidades para vigilar.',
+    getStarted:      'Comenzar →',
+    sensoryActive:   '✓ Perfil sensorial activo',
+    explore:         'Explorar',
+    saved:           'Guardados',
+    notSet:          'No definido',
+  },
+  // Add more languages here following same pattern
+}
+
+export const getLang = (code) => LANGUAGES.find(l => l.code === code) || LANGUAGES[0]
+export const getText = (code) => UI_TEXT[code] || UI_TEXT['en']
