@@ -75,6 +75,12 @@ export const UI_TEXT = {
     explore:         'Explore',
     saved:           'Saved',
     notSet:          'Not set',
+    useMyLocation:   'Use my location',
+    locating:        'Locating…',
+    locationDenied:      'Location access denied. You can type your location instead.',
+    locationUnavailable: "Couldn't determine your location. Please type it instead.",
+    locationTimeout:     'Location request timed out. Please type your location instead.',
+    locationUnsupported: "Your browser doesn't support location access.",
   },
   es: {
     tagline:         'Sabe antes de ir.',
@@ -125,6 +131,12 @@ export const UI_TEXT = {
     explore:         'Explorar',
     saved:           'Guardados',
     notSet:          'No definido',
+    useMyLocation:   'Usar mi ubicación',
+    locating:        'Localizando…',
+    locationDenied:      'Acceso a la ubicación denegado. Puedes escribirla en su lugar.',
+    locationUnavailable: 'No se pudo determinar tu ubicación. Por favor escríbela.',
+    locationTimeout:     'La solicitud de ubicación tardó demasiado. Por favor escríbela.',
+    locationUnsupported: 'Tu navegador no admite el acceso a la ubicación.',
   },
   // Add more languages here following same pattern
 }

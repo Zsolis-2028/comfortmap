@@ -16,6 +16,8 @@ export default function HomeScreen() {
   const { lang, sensory, COLORS } = useUser()
   const t = getText(lang)
   const [input, setInput] = useState('')
+  const [locating, setLocating] = useState(false)
+  const [locationError, setLocationError] = useState('')
 
   const handleSubmit = () => {
     if (!input.trim()) return
@@ -24,6 +26,47 @@ export default function HomeScreen() {
 
   const handleVenuePick = (venue) => {
     navigate('/input', { state: { venue } })
+  }
+
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError(t.locationUnsupported || "Your browser doesn't support location access.")
+      return
+    }
+    setLocating(true)
+    setLocationError('')
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords
+          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
+          if (!res.ok) throw new Error('lookup failed')
+          const data = await res.json()
+          const city = data.city || data.locality
+          const state = data.principalSubdivision
+          const place = [city, state].filter(Boolean).join(', ')
+          if (place) {
+            setInput(prev => prev.trim() ? `${prev.trim()} ${place}` : place)
+          } else {
+            setLocationError(t.locationUnavailable || "Couldn't determine your city. Please type it instead.")
+          }
+        } catch {
+          setLocationError(t.locationUnavailable || "Couldn't determine your city. Please type it instead.")
+        }
+        setLocating(false)
+      },
+      (err) => {
+        setLocating(false)
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocationError(t.locationDenied || 'Location access denied. You can type your location instead.')
+        } else if (err.code === err.TIMEOUT) {
+          setLocationError(t.locationTimeout || 'Location request timed out. Please type your location instead.')
+        } else {
+          setLocationError(t.locationUnavailable || "Couldn't determine your location. Please type it instead.")
+        }
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    )
   }
 
   return (
@@ -66,6 +109,50 @@ export default function HomeScreen() {
             }}
             onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleSubmit() }}
           />
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+            <button
+              onClick={handleUseLocation}
+              disabled={locating}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: COLORS.forest,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: locating ? 'default' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '4px 2px',
+                opacity: locating ? 0.7 : 1,
+              }}
+            >
+              {locating ? (
+                <>
+                  <span style={{
+                    display: 'inline-block',
+                    width: 12,
+                    height: 12,
+                    border: `2px solid ${COLORS.border}`,
+                    borderTopColor: COLORS.forest,
+                    borderRadius: '50%',
+                    animation: 'cm-spin 0.7s linear infinite',
+                  }} />
+                  {t.locating || 'Locating…'}
+                </>
+              ) : (
+                <>📍 {t.useMyLocation || 'Use my location'}</>
+              )}
+            </button>
+          </div>
+          {locationError && (
+            <div style={{ fontSize: 12, color: COLORS.errorText, marginTop: 4, textAlign: 'right' }}>
+              {locationError}
+            </div>
+          )}
+          <style>{`@keyframes cm-spin{to{transform:rotate(360deg)}}`}</style>
+
           <PrimaryButton onClick={handleSubmit} disabled={!input.trim()}>
             {t.buildMap || 'Build My Comfort Map →'}
           </PrimaryButton>

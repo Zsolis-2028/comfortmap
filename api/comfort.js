@@ -6,7 +6,7 @@
 // into the Vite dev server (see vite.config.js) for local development.
 
 const MODEL = 'claude-sonnet-4-6'
-const MAX_TOKENS = 1200
+const MAX_TOKENS = 1500
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
 const ANTHROPIC_TIMEOUT_MS = 30000
 
@@ -35,7 +35,18 @@ function buildSystemPrompt({ sensory = [], who = null, lang = 'en' }) {
     : ''
 
   const whoContext = who
-    ? `\n\nWHO THIS IS FOR: ${who}. Adjust tone and detail level accordingly. If "child", include parent-friendly prep scripts. If "professional", be more clinical and detailed.`
+    ? `\n\nWHO THIS IS FOR: ${who}. Adjust tone and detail level accordingly. If "professional", be more clinical and detailed.`
+    : ''
+
+  const prepScriptSection = who === 'child'
+    ? `
+
+**Prep Script for Parents**
+["Word-for-word script, 4-6 short sentences, wrapped in quotation marks exactly as the parent should read it aloud to their child the night before the visit. Use simple words a young child understands. Name the place, give one calm reassurance, describe one concrete thing they'll see or do, and offer one comforting thing they can do if it feels like too much. End on an encouraging note."]`
+    : ''
+
+  const prepScriptRule = who === 'child'
+    ? `\n• The "WHO THIS IS FOR" is a child, so you MUST end every response — including follow-up answers — with the "Prep Script for Parents" section exactly as shown in OUTPUT FORMAT, after the "Want to know more?" section.`
     : ''
 
   return `You are ComfortMap — a calm, warm, supportive AI that helps people feel safe and prepared before visiting any real-world place.
@@ -57,7 +68,7 @@ RULES:
 • Never use fear-based language
 • Be warm, calm, non-judgmental, and concise
 • Never say "I don't know" — infer from context and be clear what's typical vs specific
-• Always end with one gentle follow-up question offering more help
+• Always end with one gentle follow-up question offering more help${prepScriptRule}
 
 OUTPUT FORMAT — always use exactly this structure:
 
@@ -78,7 +89,7 @@ OUTPUT FORMAT — always use exactly this structure:
 [2-4 practical, actionable comfort tips]
 
 **Want to know more?**
-[One gentle offer — e.g. "Want a step-by-step walkthrough?" or "Want a low-stress timing plan?"]`
+[One gentle offer — e.g. "Want a step-by-step walkthrough?" or "Want a low-stress timing plan?"]${prepScriptSection}`
 }
 
 function sendJson(res, status, payload) {
