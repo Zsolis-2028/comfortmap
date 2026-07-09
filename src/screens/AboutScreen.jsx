@@ -96,6 +96,24 @@ export default function AboutScreen() {
         <div style={{ textAlign: 'center', fontSize: 12, color: COLORS.muted, marginTop: 32, marginBottom: 12 }}>
           Made with care for anyone who's ever felt anxious about somewhere new. 💚
         </div>
+
+        <div style={{ textAlign: 'center', marginBottom: 12 }}>
+          <button
+            onClick={() => navigate('/terms')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: COLORS.green,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: 4,
+            }}
+          >
+            Terms of Service
+          </button>
+        </div>
       </Screen>
     </div>
   )
