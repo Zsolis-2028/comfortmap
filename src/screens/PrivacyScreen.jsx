@@ -84,6 +84,24 @@ export default function PrivacyScreen() {
           Reach out any time at{' '}
           <span style={{ color: COLORS.green, fontWeight: 600 }}>hello@comfortmap.app</span>.
         </Section>
+
+        <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 12 }}>
+          <button
+            onClick={() => navigate('/terms')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: COLORS.green,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: 4,
+            }}
+          >
+            Terms of Service
+          </button>
+        </div>
       </Screen>
     </div>
   )
