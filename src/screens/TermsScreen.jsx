@@ -5,6 +5,7 @@
 
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import { getText } from '../data/languages'
 import { RADIUS } from '../styles/colors'
 import { DAILY_MAP_LIMIT } from '../utils/rateLimit'
 import Header from '../components/Header'
@@ -25,11 +26,12 @@ function Section({ title, children, COLORS }) {
 
 export default function TermsScreen() {
   const navigate = useNavigate()
-  const { COLORS } = useUser()
+  const { COLORS, lang } = useUser()
+  const t = getText(lang)
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
-      <Header title="Terms of Service" onBack={() => navigate(-1)} />
+      <Header title={t.terms || 'Terms of Service'} onBack={() => navigate(-1)} />
       <Screen>
         <p style={{ fontSize: 13, color: COLORS.muted, margin: '16px 0 20px', lineHeight: 1.6 }}>
           Last updated July 2026. These are the terms for using ComfortMap — written in plain

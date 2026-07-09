@@ -295,14 +295,14 @@ export default function ResultScreen() {
     }}>
       <div style={{ fontSize: 52, marginBottom: 16 }}>🌙</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
-        You've used your {DAILY_MAP_LIMIT} comfort maps for today
+        {(t.limitReachedTitle || "You've used your {n} comfort maps for today").replace('{n}', DAILY_MAP_LIMIT)}
       </div>
       <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 280, lineHeight: 1.6, marginBottom: 28 }}>
-        Take a breath — your maps will refresh tomorrow. Come back then for more.
+        {t.limitReachedSubtitle || 'Take a breath — your maps will refresh tomorrow. Come back then for more.'}
       </div>
       <div style={{ width: '100%', maxWidth: 280 }}>
         <GhostButton onClick={() => navigate('/home')}>
-          ← Back to home
+          {t.backToHome || '← Back to home'}
         </GhostButton>
       </div>
     </div>
@@ -325,7 +325,7 @@ export default function ResultScreen() {
           {t.buildingMap || 'Building your comfort map...'}
         </div>
         <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 260, lineHeight: 1.6 }}>
-          Scanning noise, crowds, sensory triggers, and what to expect.
+          {t.loadingSubtitle || 'Scanning noise, crowds, sensory triggers, and what to expect.'}
         </div>
       </div>
 
@@ -350,7 +350,7 @@ export default function ResultScreen() {
         title={t.yourMap || 'Your Comfort Map'}
         onBack={() => navigate('/home')}
         onRight={!saved ? handleSave : undefined}
-        rightLabel={saved ? '✓ Saved' : (t.saveMap || '🔖 Save')}
+        rightLabel={saved ? `✓ ${t.saved || 'Saved'}` : (t.saveMap || '🔖 Save')}
       />
       <Screen>
         {/* Error state */}
@@ -366,7 +366,7 @@ export default function ResultScreen() {
           }}>
             {error}
             <button onClick={runComfortMap} style={{ marginLeft: 8, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.errorText, fontSize: 14 }}>
-              Try again
+              {t.tryAgain || 'Try again'}
             </button>
           </div>
         )}
@@ -394,14 +394,14 @@ export default function ResultScreen() {
             }}>
               {feedback ? (
                 <div style={{ fontSize: 13, color: COLORS.muted }}>
-                  Thanks for letting us know 🌿
+                  {t.feedbackThanks || 'Thanks for letting us know 🌿'}
                 </div>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 13, color: COLORS.muted }}>Was this helpful?</span>
+                  <span style={{ fontSize: 13, color: COLORS.muted }}>{t.wasHelpful || 'Was this helpful?'}</span>
                   <button
                     onClick={() => setFeedback('up')}
-                    aria-label="Yes, this was helpful"
+                    aria-label={t.helpfulYesAria || 'Yes, this was helpful'}
                     style={{
                       background: 'none',
                       border: `1.5px solid ${COLORS.border}`,
@@ -419,7 +419,7 @@ export default function ResultScreen() {
                   </button>
                   <button
                     onClick={() => setFeedback('down')}
-                    aria-label="No, this was not helpful"
+                    aria-label={t.helpfulNoAria || 'No, this was not helpful'}
                     style={{
                       background: 'none',
                       border: `1.5px solid ${COLORS.border}`,
@@ -476,7 +476,7 @@ export default function ResultScreen() {
               <input
                 value={followUpInput}
                 onChange={e => setFollowUpInput(e.target.value)}
-                placeholder="Or ask anything else..."
+                placeholder={t.followUpPlaceholder || 'Or ask anything else...'}
                 onKeyDown={e => { if (e.key === 'Enter') handleFollowUp() }}
                 style={{
                   flex: 1,
@@ -505,7 +505,7 @@ export default function ResultScreen() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                Ask →
+                {t.askButton || 'Ask →'}
               </button>
             </div>
           </div>
@@ -513,15 +513,15 @@ export default function ResultScreen() {
 
         {followUpLoading && (
           <div style={{ textAlign: 'center', padding: '24px', color: COLORS.muted, fontSize: 14 }}>
-            Thinking...
+            {t.thinking || 'Thinking...'}
           </div>
         )}
 
         {/* Actions */}
         <div style={{ display: 'grid', gridTemplateColumns: (ttsSupported && response) ? 'repeat(3, 1fr)' : '1fr 1fr', gap: 10, marginTop: 20 }}>
           {[
-            ['📤 Share', () => {}],
-            ['🔄 Regenerate', runComfortMap],
+            [t.shareMap || '📤 Share', () => {}],
+            [t.regenerate || '🔄 Regenerate', runComfortMap],
             ...((ttsSupported && response) ? [[
               speaking ? (t.stopReading || '⏹ Stop') : (t.readAloud || '🔊 Read aloud'),
               handleReadAloud,

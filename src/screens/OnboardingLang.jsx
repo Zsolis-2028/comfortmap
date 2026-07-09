@@ -3,7 +3,7 @@
 
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
-import { LANGUAGES, getFlagUrl } from '../data/languages'
+import { LANGUAGES, getFlagUrl, getText } from '../data/languages'
 import { RADIUS } from '../styles/colors'
 import Header from '../components/Header'
 import Screen from '../components/Screen'
@@ -11,6 +11,7 @@ import Screen from '../components/Screen'
 export default function OnboardingLang() {
   const navigate = useNavigate()
   const { lang, setLang, COLORS } = useUser()
+  const t = getText(lang)
 
   const handleSelect = (code) => {
     setLang(code)
@@ -19,10 +20,10 @@ export default function OnboardingLang() {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
-      <Header title="Choose your language" />
+      <Header title={t.chooseLanguage || 'Choose your language'} />
       <Screen>
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>
-          ComfortMap speaks your language. You can change this anytime in Settings.
+          {t.langSubtitle || 'ComfortMap speaks your language. You can change this anytime in Settings.'}
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

@@ -4,6 +4,7 @@
 
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import { getText } from '../data/languages'
 import { RADIUS } from '../styles/colors'
 import Header from '../components/Header'
 import Screen from '../components/Screen'
@@ -23,11 +24,12 @@ function Section({ title, children, COLORS }) {
 
 export default function PrivacyScreen() {
   const navigate = useNavigate()
-  const { COLORS } = useUser()
+  const { COLORS, lang } = useUser()
+  const t = getText(lang)
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
-      <Header title="Privacy Policy" onBack={() => navigate(-1)} />
+      <Header title={t.privacy || 'Privacy Policy'} onBack={() => navigate(-1)} />
       <Screen>
         <p style={{ fontSize: 13, color: COLORS.muted, margin: '16px 0 20px', lineHeight: 1.6 }}>
           Last updated July 2026. This policy explains exactly what ComfortMap stores and shares —
@@ -99,7 +101,7 @@ export default function PrivacyScreen() {
               padding: 4,
             }}
           >
-            Terms of Service
+            {t.terms || 'Terms of Service'}
           </button>
         </div>
       </Screen>

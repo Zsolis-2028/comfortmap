@@ -5,7 +5,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
-import { getVenueLabel } from '../data/venues'
+import { getVenueLabel, getVenuePlaceholder } from '../data/venues'
 import { getText } from '../data/languages'
 import { RADIUS } from '../styles/colors'
 import Header from '../components/Header'
@@ -71,7 +71,7 @@ export default function InputScreen() {
         <textarea
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder={venue?.placeholderHint || ''}
+          placeholder={venue ? getVenuePlaceholder(venue, lang) : ''}
           rows={5}
           style={{
             width: '100%',

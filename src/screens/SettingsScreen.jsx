@@ -12,21 +12,21 @@ import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 
 const TEXT_SIZE_OPTIONS = [
-  { value: 'small',  label: 'Small' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'large',  label: 'Large' },
-  { value: 'xlarge', label: 'Extra Large' },
+  { value: 'small',  labelKey: 'textSizeSmall',  fallback: 'Small' },
+  { value: 'medium', labelKey: 'textSizeMedium', fallback: 'Medium' },
+  { value: 'large',  labelKey: 'textSizeLarge',  fallback: 'Large' },
+  { value: 'xlarge', labelKey: 'textSizeXLarge', fallback: 'Extra Large' },
 ]
 
 const DARK_MODE_OPTIONS = [
-  { value: 'off',    label: 'Off' },
-  { value: 'on',     label: 'On' },
-  { value: 'system', label: 'System' },
+  { value: 'off',    labelKey: 'toggleOff',    fallback: 'Off' },
+  { value: 'on',     labelKey: 'toggleOn',     fallback: 'On' },
+  { value: 'system', labelKey: 'toggleSystem', fallback: 'System' },
 ]
 
 const ACCESSIBILITY_OPTIONS = [
-  { value: 'off', label: 'Off' },
-  { value: 'on',  label: 'On' },
+  { value: 'off', labelKey: 'toggleOff', fallback: 'Off' },
+  { value: 'on',  labelKey: 'toggleOn',  fallback: 'On' },
 ]
 
 function SettingsGroup({ title, COLORS, children }) {
@@ -91,14 +91,15 @@ function SettingsRow({ emoji, label, value, onClick, last = false, COLORS, ariaE
 // A settings row that expands in place into a row of selectable pill
 // options — used for Text size / Dark mode / Accessibility mode, which
 // are simple single-choice settings that don't need their own screen.
-function OptionRow({ emoji, label, options, value, onChange, expanded, onToggle, last, COLORS }) {
+function OptionRow({ emoji, label, options, value, onChange, expanded, onToggle, last, COLORS, t }) {
   const current = options.find(o => o.value === value)
+  const optionLabel = (opt) => (t[opt.labelKey] || opt.fallback)
   return (
     <>
       <SettingsRow
         emoji={emoji}
         label={label}
-        value={current?.label || ''}
+        value={current ? optionLabel(current) : ''}
         onClick={onToggle}
         last={!expanded && last}
         COLORS={COLORS}
@@ -130,7 +131,7 @@ function OptionRow({ emoji, label, options, value, onChange, expanded, onToggle,
                   cursor: 'pointer',
                 }}
               >
-                {opt.label}
+                {optionLabel(opt)}
               </button>
             )
           })}
@@ -163,7 +164,7 @@ export default function SettingsScreen() {
       <Screen>
         <div style={{ marginTop: 16 }}>
 
-          <SettingsGroup title="Profile" COLORS={COLORS}>
+          <SettingsGroup title={t.profileSection || 'Profile'} COLORS={COLORS}>
             <SettingsRow
               emoji="🌍"
               label={t.language || 'Language'}
@@ -181,11 +182,11 @@ export default function SettingsScreen() {
             />
           </SettingsGroup>
 
-          <SettingsGroup title="Sensory Profile" COLORS={COLORS}>
+          <SettingsGroup title={t.sensoryProfile || 'Sensory Profile'} COLORS={COLORS}>
             <SettingsRow
               emoji="🧠"
               label={t.activeSens || 'Active sensitivities'}
-              value={sensory.length > 0 ? `${sensory.length} selected` : 'None'}
+              value={sensory.length > 0 ? (t.selectedCount || '{n} selected').replace('{n}', sensory.length) : (t.noneSelected || 'None')}
               COLORS={COLORS}
             />
             <SettingsRow
@@ -198,7 +199,7 @@ export default function SettingsScreen() {
             />
           </SettingsGroup>
 
-          <SettingsGroup title="Display" COLORS={COLORS}>
+          <SettingsGroup title={t.display || 'Display'} COLORS={COLORS}>
             <OptionRow
               emoji="🔤"
               label={t.textSize || 'Text size'}
@@ -208,6 +209,7 @@ export default function SettingsScreen() {
               expanded={expandedRow === 'textSize'}
               onToggle={() => toggleRow('textSize')}
               COLORS={COLORS}
+              t={t}
             />
             <OptionRow
               emoji="🌙"
@@ -218,6 +220,7 @@ export default function SettingsScreen() {
               expanded={expandedRow === 'darkMode'}
               onToggle={() => toggleRow('darkMode')}
               COLORS={COLORS}
+              t={t}
             />
             <OptionRow
               emoji="♿"
@@ -229,10 +232,11 @@ export default function SettingsScreen() {
               onToggle={() => toggleRow('accessibility')}
               last
               COLORS={COLORS}
+              t={t}
             />
           </SettingsGroup>
 
-          <SettingsGroup title="About" COLORS={COLORS}>
+          <SettingsGroup title={t.about || 'About'} COLORS={COLORS}>
             <SettingsRow emoji="ℹ️" label={t.aboutApp || 'About ComfortMap'} value="" onClick={() => navigate('/settings/about')} COLORS={COLORS} />
             <SettingsRow emoji="🔒" label={t.privacy || 'Privacy policy'} value="" onClick={() => navigate('/settings/privacy')} COLORS={COLORS} />
             <SettingsRow emoji="📄" label={t.terms || 'Terms of service'} value="" onClick={() => navigate('/terms')} COLORS={COLORS} />
@@ -253,7 +257,7 @@ export default function SettingsScreen() {
               margin: '0 auto',
             }}
           >
-            Reset onboarding (dev)
+            {t.resetOnboardingDev || 'Reset onboarding (dev)'}
           </button>
         </div>
       </Screen>

@@ -3,6 +3,7 @@
 
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import { getText } from '../data/languages'
 import { RADIUS } from '../styles/colors'
 import Header from '../components/Header'
 import Screen from '../components/Screen'
@@ -23,18 +24,19 @@ function Section({ title, children, COLORS }) {
 
 export default function AboutScreen() {
   const navigate = useNavigate()
-  const { COLORS } = useUser()
+  const { COLORS, lang } = useUser()
+  const t = getText(lang)
 
   const FACTS = [
-    ['🌍', '10 languages'],
-    ['🏙️', '16 venue types'],
-    ['🧠', '8 sensory profiles'],
-    ['🆓', 'Free to use'],
+    ['🌍', t.statLanguages || '10 languages'],
+    ['🏙️', t.statVenues || '16 venue types'],
+    ['🧠', t.statSensory || '8 sensory profiles'],
+    ['🆓', t.statFree || 'Free to use'],
   ]
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
-      <Header title="About ComfortMap" onBack={() => navigate(-1)} />
+      <Header title={t.aboutApp || 'About ComfortMap'} onBack={() => navigate(-1)} />
       <Screen>
         <div style={{ textAlign: 'center', margin: '28px 0 24px' }}>
           <div style={{ fontSize: 56, marginBottom: 12 }}>🗺️</div>
@@ -42,7 +44,7 @@ export default function AboutScreen() {
             ComfortMap
           </div>
           <div style={{ fontSize: 13, color: COLORS.muted, marginTop: 4 }}>
-            Version {pkg.version}
+            {t.version || 'Version'} {pkg.version}
           </div>
         </div>
 
@@ -94,7 +96,7 @@ export default function AboutScreen() {
         </Section>
 
         <div style={{ textAlign: 'center', fontSize: 12, color: COLORS.muted, marginTop: 32, marginBottom: 12 }}>
-          Made with care for anyone who's ever felt anxious about somewhere new. 💚
+          {t.madeWithCare || "Made with care for anyone who's ever felt anxious about somewhere new. 💚"}
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
@@ -111,7 +113,7 @@ export default function AboutScreen() {
               padding: 4,
             }}
           >
-            Terms of Service
+            {t.terms || 'Terms of Service'}
           </button>
         </div>
       </Screen>

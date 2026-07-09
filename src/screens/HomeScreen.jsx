@@ -92,7 +92,7 @@ export default function HomeScreen() {
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder={"Describe where you're going..."}
+            placeholder={t.describePlaceholder || "Describe where you're going..."}
             rows={4}
             style={{
               width: '100%',

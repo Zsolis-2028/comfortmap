@@ -4,11 +4,13 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import { getText } from '../data/languages'
 import { PrimaryButton } from '../components/Button'
 
 export default function SplashScreen() {
   const navigate = useNavigate()
-  const { onboardingDone, COLORS, isDark } = useUser()
+  const { onboardingDone, COLORS, isDark, lang } = useUser()
+  const t = getText(lang)
 
   // If already onboarded, go straight to home
   useEffect(() => {
@@ -35,20 +37,20 @@ export default function SplashScreen() {
       </div>
 
       <div style={{ fontSize: 18, color: COLORS.muted, marginBottom: 12, fontWeight: 500 }}>
-        Know before you go.
+        {t.tagline || 'Know before you go.'}
       </div>
 
       <div style={{ fontSize: 15, color: COLORS.muted, maxWidth: 280, lineHeight: 1.6, marginBottom: 48 }}>
-        Feel safe, confident, and prepared before entering any place — anywhere in the world.
+        {t.splashSubtitle || 'Feel safe, confident, and prepared before entering any place — anywhere in the world.'}
       </div>
 
       <div style={{ width: '100%', maxWidth: 340 }}>
         <PrimaryButton onClick={() => navigate('/onboarding/language')}>
-          Get Started →
+          {t.getStarted || 'Get Started →'}
         </PrimaryButton>
 
         <div style={{ marginTop: 20, fontSize: 13, color: COLORS.muted, lineHeight: 1.8 }}>
-          🌍 10 languages &nbsp;•&nbsp; 🏙️ 16 venue types &nbsp;•&nbsp; 🆓 Free
+          🌍 {t.statLanguages || '10 languages'} &nbsp;•&nbsp; 🏙️ {t.statVenues || '16 venue types'} &nbsp;•&nbsp; 🆓 {t.statFree || 'Free'}
         </div>
       </div>
 

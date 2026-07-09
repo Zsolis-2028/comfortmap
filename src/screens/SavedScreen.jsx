@@ -23,12 +23,12 @@ export default function SavedScreen() {
           {savedMaps.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: COLORS.muted }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>🔖</div>
-              <div style={{ fontSize: 16, marginBottom: 8, color: COLORS.text, fontWeight: 600 }}>No saved maps yet</div>
+              <div style={{ fontSize: 16, marginBottom: 8, color: COLORS.text, fontWeight: 600 }}>{t.noSavedTitle || 'No saved maps yet'}</div>
               <div style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
-                Build a comfort map and tap Save to keep it here.
+                {t.noSavedHint || 'Build a comfort map and tap Save to keep it here.'}
               </div>
               <PrimaryButton onClick={() => navigate('/home')}>
-                Build your first map →
+                {t.buildFirstMap || 'Build your first map →'}
               </PrimaryButton>
             </div>
           ) : (
@@ -86,7 +86,7 @@ export default function SavedScreen() {
                 </div>
               ))}
               <PrimaryButton onClick={() => navigate('/home')}>
-                + Build a new map
+                {t.buildNewMap || '+ Build a new map'}
               </PrimaryButton>
             </>
           )}

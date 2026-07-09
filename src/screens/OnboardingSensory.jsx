@@ -70,7 +70,10 @@ export default function OnboardingSensory() {
               fontSize: 13,
               color: COLORS.forest,
             }}>
-              ✓ {sensory.length} {sensory.length === 1 ? 'sensitivity' : 'sensitivities'} selected
+              ✓ {(sensory.length === 1
+                ? (t.sensitivityCountOne || '{n} sensitivity selected')
+                : (t.sensitivityCountOther || '{n} sensitivities selected')
+              ).replace('{n}', sensory.length)}
             </div>
           )}
           <PrimaryButton onClick={handleDone}>
