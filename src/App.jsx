@@ -18,6 +18,7 @@ import SavedScreen        from './screens/SavedScreen'
 import SettingsScreen     from './screens/SettingsScreen'
 import AboutScreen        from './screens/AboutScreen'
 import PrivacyScreen      from './screens/PrivacyScreen'
+import TermsScreen        from './screens/TermsScreen'
 
 export default function App() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/settings"              element={<SettingsScreen />} />
         <Route path="/settings/about"        element={<AboutScreen />} />
         <Route path="/settings/privacy"      element={<PrivacyScreen />} />
+        <Route path="/terms"                 element={<TermsScreen />} />
 
         {/* Fallback */}
         <Route path="*"                      element={<Navigate to="/" replace />} />

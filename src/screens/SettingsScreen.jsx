@@ -228,6 +228,7 @@ export default function SettingsScreen() {
           <SettingsGroup title="About" COLORS={COLORS}>
             <SettingsRow emoji="ℹ️" label={t.aboutApp || 'About ComfortMap'} value="" onClick={() => navigate('/settings/about')} COLORS={COLORS} />
             <SettingsRow emoji="🔒" label={t.privacy || 'Privacy policy'} value="" onClick={() => navigate('/settings/privacy')} COLORS={COLORS} />
+            <SettingsRow emoji="📄" label={t.terms || 'Terms of service'} value="" onClick={() => navigate('/terms')} COLORS={COLORS} />
             <SettingsRow emoji="⭐" label={t.rate || 'Rate the app'} value="" onClick={() => {}} last COLORS={COLORS} />
           </SettingsGroup>
 
