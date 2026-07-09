@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#FDFAF5"/>
+  <rect x="80" y="205" width="220" height="220" rx="49" fill="#4A7C59"/>
+  <g transform="translate(190 315) scale(6.02) translate(-12 -12.5)">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#FDFAF5"/>
+    <path d="M12 5.3L12.85 8.5L12 11.7L11.15 8.5Z M14.6 8.5L12 7.65L9.4 8.5L12 9.35Z" fill="#4A7C59"/>
+    <circle cx="12" cy="8.5" r="0.55" fill="#FDFAF5"/>
+  </g>
+  <text x="342" y="300" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="800" fill="#4A7C59">ComfortMap</text>
+  <text x="344" y="350" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#6b7280">Know before you go.</text>
+  <text x="344" y="392" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#4A7C59">Calm, sensory-aware navigation for every place on earth.</text>
+</svg>

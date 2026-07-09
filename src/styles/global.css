@@ -47,8 +47,45 @@ textarea, input {
   to { transform: rotate(360deg); }
 }
 
+@keyframes shimmer {
+  0% { background-position: -300px 0; }
+  100% { background-position: calc(300px + 100%) 0; }
+}
+
 .fade-in {
   animation: fadeIn 0.3s ease forwards;
+}
+
+/* Skip link — hidden until keyboard-focused, then jumps above everything
+   so keyboard/screen-reader users can bypass the header and nav on every
+   screen without tabbing through them first. */
+.skip-link {
+  position: fixed;
+  top: -60px;
+  left: 8px;
+  z-index: 1000;
+  background: #4A7C59;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 8px;
+}
+
+/* Visible keyboard focus everywhere, not just in accessibility mode. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2.5px solid #4A7C59;
+  outline-offset: 2px;
 }
 
 /* Text size setting — scales the whole app shell so layout reflows

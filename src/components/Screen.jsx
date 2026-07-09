@@ -4,7 +4,7 @@
 
 export default function Screen({ children, pad = true, style = {} }) {
   return (
-    <div style={{
+    <main id="main-content" style={{
       maxWidth: 480,
       margin: '0 auto',
       padding: pad ? '0 20px 100px' : '0 0 100px',
@@ -12,6 +12,6 @@ export default function Screen({ children, pad = true, style = {} }) {
       ...style,
     }}>
       {children}
-    </div>
+    </main>
   )
 }

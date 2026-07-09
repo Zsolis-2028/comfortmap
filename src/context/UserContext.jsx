@@ -5,6 +5,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react'
 import { COLORS, DARK_COLORS } from '../styles/colors'
+import { getLang } from '../data/languages'
 
 const UserContext = createContext(null)
 
@@ -66,6 +67,15 @@ export function UserProvider({ children }) {
 
   const isDark = darkMode === 'on' || (darkMode === 'system' && systemPrefersDark)
   const COLORS_ACTIVE = isDark ? DARK_COLORS : COLORS
+
+  // Keep <html lang> and dir in sync with the selected language so
+  // screen readers announce the right language and RTL scripts (Arabic)
+  // lay out correctly.
+  useEffect(() => {
+    const { dir } = getLang(lang)
+    document.documentElement.lang = lang
+    document.documentElement.dir = dir
+  }, [lang])
 
   // Persist everything to localStorage whenever it changes
   useEffect(() => { localStorage.setItem('cm_lang', lang) }, [lang])

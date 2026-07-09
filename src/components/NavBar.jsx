@@ -18,7 +18,7 @@ export default function NavBar() {
   const t = getText(lang)
 
   return (
-    <nav style={{
+    <nav aria-label={t.mainNavLabel || 'Main navigation'} style={{
       position: 'fixed',
       bottom: 0,
       left: 0,
@@ -32,10 +32,13 @@ export default function NavBar() {
     }}>
       {TABS.map(tab => {
         const active = location.pathname.startsWith(tab.path)
+        const label = t[tab.labelKey] || tab.labelKey
         return (
           <button
             key={tab.path}
             onClick={() => navigate(tab.path)}
+            aria-current={active ? 'page' : undefined}
+            aria-label={label}
             style={{
               background: 'none',
               border: 'none',
@@ -49,13 +52,13 @@ export default function NavBar() {
               transition: 'opacity 0.2s',
             }}
           >
-            <span style={{ fontSize: 24 }}>{tab.emoji}</span>
+            <span style={{ fontSize: 24 }} aria-hidden="true">{tab.emoji}</span>
             <span style={{
               fontSize: 11,
               color: COLORS.forest,
               fontWeight: 600,
             }}>
-              {t[tab.labelKey] || tab.labelKey}
+              {label}
             </span>
           </button>
         )

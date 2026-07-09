@@ -37,6 +37,15 @@ export default function SavedScreen() {
                 <div
                   key={map.id}
                   onClick={() => navigate('/result', { state: { prompt: map.name, response: map.response } })}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${map.name}, ${t.saved || 'saved'} ${new Date(map.savedAt).toLocaleDateString()}`}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      navigate('/result', { state: { prompt: map.name, response: map.response } })
+                    }
+                  }}
                   style={{
                     background: COLORS.white,
                     border: `1.5px solid ${COLORS.border}`,
@@ -51,7 +60,7 @@ export default function SavedScreen() {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <span style={{ fontSize: 30 }}>{map.venue || '📍'}</span>
+                      <span style={{ fontSize: 30 }} aria-hidden="true">{map.venue || '📍'}</span>
                       <div>
                         <div style={{ fontWeight: 700, color: COLORS.text, fontSize: 15 }}>{map.name}</div>
                         <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>
@@ -61,6 +70,7 @@ export default function SavedScreen() {
                     </div>
                     <button
                       onClick={e => { e.stopPropagation(); deleteMap(map.id) }}
+                      aria-label={`${t.delete || 'Delete'} ${map.name}`}
                       style={{
                         background: 'none',
                         border: 'none',

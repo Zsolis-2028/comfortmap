@@ -97,6 +97,40 @@ const FOLLOW_UP_SUGGESTIONS_BY_LANG = {
   ],
 }
 
+// Maps app language codes to BCP-47 speech-synthesis locales.
+const TTS_LANG_MAP = {
+  en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', pt: 'pt-BR',
+  ar: 'ar-SA', zh: 'zh-CN', ja: 'ja-JP', hi: 'hi-IN', ko: 'ko-KR',
+}
+
+// Strips markdown-style formatting so the speech synthesizer doesn't
+// read out "asterisk asterisk" or bullet punctuation.
+function stripForSpeech(text) {
+  return text
+    .replace(/\*\*/g, '')
+    .replace(/^[•\-]\s*/gm, '')
+    .replace(/^\d+\.\s*/gm, '')
+    .replace(/\n+/g, '. ')
+}
+
+// Shimmering placeholder bar used while the comfort map is generating.
+function SkeletonBar({ COLORS, width = '100%', height = 10, style = {} }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width,
+        height,
+        borderRadius: 6,
+        background: `linear-gradient(90deg, ${COLORS.pale} 25%, ${COLORS.white} 37%, ${COLORS.pale} 63%)`,
+        backgroundSize: '300px 100%',
+        animation: 'shimmer 1.4s ease-in-out infinite',
+        ...style,
+      }}
+    />
+  )
+}
+
 // Render markdown-style bold and bullet formatting from AI response
 function FormattedResponse({ text }) {
   const { COLORS } = useUser()
@@ -161,13 +195,37 @@ export default function ResultScreen() {
   const [saved, setSaved] = useState(false)
   const [feedback, setFeedback] = useState(null)
   const [limitReached, setLimitReached] = useState(false)
+  const [speaking, setSpeaking] = useState(false)
   const runningRef = useRef(false)
+  const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
   // Run the AI call on mount
   useEffect(() => {
     if (!prompt) { navigate('/home'); return }
     runComfortMap()
   }, [])
+
+  // Stop any speech in progress when the screen unmounts or the user
+  // navigates away mid-read.
+  useEffect(() => {
+    return () => { if (ttsSupported) window.speechSynthesis.cancel() }
+  }, [])
+
+  const handleReadAloud = () => {
+    if (!ttsSupported || !response) return
+    if (speaking) {
+      window.speechSynthesis.cancel()
+      setSpeaking(false)
+      return
+    }
+    const utterance = new SpeechSynthesisUtterance(stripForSpeech(response))
+    utterance.lang = TTS_LANG_MAP[lang] || 'en-US'
+    utterance.onend = () => setSpeaking(false)
+    utterance.onerror = () => setSpeaking(false)
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(utterance)
+    setSpeaking(true)
+  }
 
   const runComfortMap = async () => {
     if (runningRef.current) return
@@ -180,6 +238,7 @@ export default function ResultScreen() {
     setError('')
     setLimitReached(false)
     setFeedback(null)
+    if (ttsSupported) { window.speechSynthesis.cancel(); setSpeaking(false) }
     try {
       const result = await getComfortMap({ userMessage: prompt, sensory, who, lang })
       recordMapGenerated()
@@ -249,7 +308,8 @@ export default function ResultScreen() {
     </div>
   )
 
-  // Loading state
+  // Loading state — animated skeleton so the layout doesn't jump when
+  // the real content arrives.
   if (loading) return (
     <div style={{
       minHeight: '100vh',
@@ -257,17 +317,29 @@ export default function ResultScreen() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-      padding: 32,
+      padding: '56px 20px 32px',
     }}>
-      <div style={{ fontSize: 60, marginBottom: 20, animation: 'pulse 1.5s ease-in-out infinite' }}>🗺️</div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
-        Building your comfort map...
+      <div role="status" aria-live="polite" style={{ textAlign: 'center', marginBottom: 28 }}>
+        <div style={{ fontSize: 56, marginBottom: 18, animation: 'pulse 1.5s ease-in-out infinite' }} aria-hidden="true">🗺️</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
+          {t.buildingMap || 'Building your comfort map...'}
+        </div>
+        <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 260, lineHeight: 1.6 }}>
+          Scanning noise, crowds, sensory triggers, and what to expect.
+        </div>
       </div>
-      <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 260, lineHeight: 1.6 }}>
-        Scanning noise, crowds, sensory triggers, and what to expect.
+
+      <div style={{ width: '100%', maxWidth: 440, background: COLORS.white, border: `1.5px solid ${COLORS.border}`, borderRadius: RADIUS.xl, padding: 20 }}>
+        <SkeletonBar COLORS={COLORS} width="35%" height={11} style={{ marginBottom: 12 }} />
+        <SkeletonBar COLORS={COLORS} width="100%" height={9} style={{ marginBottom: 7 }} />
+        <SkeletonBar COLORS={COLORS} width="88%" height={9} style={{ marginBottom: 22 }} />
+
+        <SkeletonBar COLORS={COLORS} width="45%" height={11} style={{ marginBottom: 12 }} />
+        {[95, 80, 90, 70].map((w, i) => (
+          <SkeletonBar key={i} COLORS={COLORS} width={`${w}%`} height={9} style={{ marginBottom: 9 }} />
+        ))}
       </div>
+
       <style>{`@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}`}</style>
     </div>
   )
@@ -283,7 +355,7 @@ export default function ResultScreen() {
       <Screen>
         {/* Error state */}
         {error && (
-          <div style={{
+          <div role="status" aria-live="assertive" style={{
             marginTop: 16,
             background: COLORS.error,
             border: `1px solid ${COLORS.errorText}55`,
@@ -446,21 +518,30 @@ export default function ResultScreen() {
         )}
 
         {/* Actions */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: (ttsSupported && response) ? 'repeat(3, 1fr)' : '1fr 1fr', gap: 10, marginTop: 20 }}>
           {[
             ['📤 Share', () => {}],
             ['🔄 Regenerate', runComfortMap],
+            ...((ttsSupported && response) ? [[
+              speaking ? (t.stopReading || '⏹ Stop') : (t.readAloud || '🔊 Read aloud'),
+              handleReadAloud,
+            ]] : []),
           ].map(([label, action]) => (
-            <button key={label} onClick={action} style={{
-              background: COLORS.white,
-              border: `1.5px solid ${COLORS.border}`,
-              borderRadius: RADIUS.md,
-              padding: '13px',
-              fontSize: 14,
-              color: COLORS.forest,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}>
+            <button
+              key={label}
+              onClick={action}
+              aria-pressed={speaking && label === (t.stopReading || '⏹ Stop') ? true : undefined}
+              style={{
+                background: COLORS.white,
+                border: `1.5px solid ${COLORS.border}`,
+                borderRadius: RADIUS.md,
+                padding: '13px',
+                fontSize: 14,
+                color: COLORS.forest,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
               {label}
             </button>
           ))}

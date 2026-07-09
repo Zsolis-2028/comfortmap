@@ -55,10 +55,15 @@ function SettingsGroup({ title, COLORS, children }) {
   )
 }
 
-function SettingsRow({ emoji, label, value, onClick, last = false, COLORS }) {
+function SettingsRow({ emoji, label, value, onClick, last = false, COLORS, ariaExpanded }) {
   return (
     <div
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }) : undefined}
+      aria-label={onClick ? `${label}${value ? `, ${value}` : ''}` : undefined}
+      aria-expanded={ariaExpanded}
       style={{
         background: COLORS.white,
         display: 'flex',
@@ -73,10 +78,10 @@ function SettingsRow({ emoji, label, value, onClick, last = false, COLORS }) {
       onMouseLeave={e => { if (onClick) e.currentTarget.style.background = COLORS.white }}
     >
       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-        <span style={{ fontSize: 18 }}>{emoji}</span>
+        <span style={{ fontSize: 18 }} aria-hidden="true">{emoji}</span>
         <span style={{ fontSize: 15, color: COLORS.text }}>{label}</span>
       </div>
-      <span style={{ fontSize: 13, color: COLORS.muted }}>
+      <span style={{ fontSize: 13, color: COLORS.muted }} aria-hidden="true">
         {value} {onClick ? '›' : ''}
       </span>
     </div>
@@ -97,6 +102,7 @@ function OptionRow({ emoji, label, options, value, onChange, expanded, onToggle,
         onClick={onToggle}
         last={!expanded && last}
         COLORS={COLORS}
+        ariaExpanded={expanded}
       />
       {expanded && (
         <div style={{
@@ -112,6 +118,7 @@ function OptionRow({ emoji, label, options, value, onChange, expanded, onToggle,
               <button
                 key={opt.value}
                 onClick={() => onChange(opt.value)}
+                aria-pressed={active}
                 style={{
                   background: active ? COLORS.pale : 'transparent',
                   border: `1.5px solid ${active ? COLORS.mint : COLORS.border}`,
