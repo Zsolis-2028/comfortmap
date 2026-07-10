@@ -13,7 +13,12 @@ const ANTHROPIC_TIMEOUT_MS = 30000
 const MAX_BODY_BYTES = 10 * 1024 // 10kb
 const MAX_FIELD_LENGTH = 2000
 
-const ALLOWED_ORIGINS = new Set(['https://comfortmap.vercel.app', 'http://localhost:5173'])
+const ALLOWED_ORIGINS = new Set([
+  'https://comfortmap.vercel.app',
+  'https://comfortmap.app',
+  'https://www.comfortmap.app',
+  'http://localhost:5173',
+])
 
 // Best-effort per-instance limiter: serverless instances are short-lived and
 // not shared, so this resets on cold start and isn't consistent across
