@@ -4,6 +4,7 @@
 // and it is never written to logs.
 // Runs as a Vercel serverless function in production, and is mounted
 // into the Vite dev server (see vite.config.js) for local development.
+// Deploy trigger: 2026-07-10
 
 const MODEL = 'claude-sonnet-4-6'
 const MAX_TOKENS = 1500
