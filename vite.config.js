@@ -22,5 +22,16 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), comfortApiDevMiddleware(env)],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom'],
+            'router': ['react-router-dom'],
+            'sentry': ['@sentry/react'],
+          },
+        },
+      },
+    },
   }
 })
