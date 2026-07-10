@@ -11,6 +11,8 @@ import { PrimaryButton } from '../components/Button'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 
+const WELCOME_STORAGE_KEY = 'cm_welcome_seen'
+
 export default function HomeScreen() {
   const navigate = useNavigate()
   const { lang, sensory, COLORS } = useUser()
@@ -18,6 +20,12 @@ export default function HomeScreen() {
   const [input, setInput] = useState('')
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
+  const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem(WELCOME_STORAGE_KEY) !== 'true')
+
+  const dismissWelcome = () => {
+    localStorage.setItem(WELCOME_STORAGE_KEY, 'true')
+    setShowWelcome(false)
+  }
 
   const handleSubmit = () => {
     if (!input.trim()) return
@@ -71,6 +79,56 @@ export default function HomeScreen() {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+      {showWelcome && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.welcomeTitle || 'Welcome to ComfortMap'}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 300,
+            background: 'rgba(0,0,0,0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+          }}
+        >
+          <div style={{
+            background: COLORS.white,
+            borderRadius: RADIUS.xl,
+            padding: 24,
+            maxWidth: 340,
+            textAlign: 'center',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.2)',
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>👋</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.forest, marginBottom: 10 }}>
+              {t.welcomeTitle || 'Welcome to ComfortMap'}
+            </div>
+            <div style={{ fontSize: 14, color: COLORS.text, lineHeight: 1.6, marginBottom: 20 }}>
+              {t.welcomeBody || "Describe a place you're visiting, or pick a place type below. We'll build you a comfort map with what to expect — noise, crowds, and sensory details — so you can feel prepared before you go."}
+            </div>
+            <button
+              onClick={dismissWelcome}
+              style={{
+                background: BRAND_GRADIENT,
+                color: 'white',
+                border: 'none',
+                borderRadius: RADIUS.md,
+                padding: '12px 20px',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                width: '100%',
+              }}
+            >
+              {t.welcomeDismiss || "Got it, let's go"}
+            </button>
+          </div>
+        </div>
+      )}
       <div style={{
         background: BRAND_GRADIENT,
         color: 'white',

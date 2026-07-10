@@ -131,6 +131,15 @@ function SkeletonBar({ COLORS, width = '100%', height = 10, style = {} }) {
   )
 }
 
+// Splits a line on **bold** markers and renders the bold segments as
+// <strong>, so inline bold survives even on lines that aren't full headers.
+function renderInline(line) {
+  const parts = line.split(/\*\*(.+?)\*\*/g)
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+  )
+}
+
 // Render markdown-style bold and bullet formatting from AI response
 function FormattedResponse({ text }) {
   const { COLORS } = useUser()
@@ -145,18 +154,11 @@ function FormattedResponse({ text }) {
             </div>
           )
         }
-        if (line.match(/^\*\*(.*)\*\*/)) {
-          return (
-            <div key={i} style={{ fontWeight: 700, color: COLORS.mint, marginTop: 20, marginBottom: 6, fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 }}>
-              {line.replace(/\*\*(.*?)\*\*/g, '$1')}
-            </div>
-          )
-        }
         if (line.startsWith('• ') || line.startsWith('- ')) {
           return (
             <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 14, color: COLORS.text, lineHeight: 1.55 }}>
               <span style={{ color: COLORS.mint, flexShrink: 0, fontWeight: 700 }}>•</span>
-              <span>{line.slice(2)}</span>
+              <span>{renderInline(line.slice(2))}</span>
             </div>
           )
         }
@@ -166,12 +168,12 @@ function FormattedResponse({ text }) {
           return (
             <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10, fontSize: 14, color: COLORS.text, lineHeight: 1.55 }}>
               <span style={{ color: COLORS.mint, fontWeight: 700, flexShrink: 0, fontSize: 12, marginTop: 2, minWidth: 16 }}>{num}</span>
-              <span>{content}</span>
+              <span>{renderInline(content)}</span>
             </div>
           )
         }
         if (line.trim() === '') return <div key={i} style={{ height: 4 }} />
-        return <div key={i} style={{ fontSize: 15, color: COLORS.text, lineHeight: 1.65, marginBottom: 4 }}>{line}</div>
+        return <div key={i} style={{ fontSize: 15, color: COLORS.text, lineHeight: 1.65, marginBottom: 4 }}>{renderInline(line)}</div>
       })}
     </div>
   )

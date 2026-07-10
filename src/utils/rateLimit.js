@@ -3,7 +3,7 @@
 // "Day" is the user's local calendar day, so the count resets at their midnight.
 
 const STORAGE_KEY = 'cm_usage'
-export const DAILY_MAP_LIMIT = 5
+export const DAILY_MAP_LIMIT = 3
 
 function todayKey() {
   return new Date().toDateString()
