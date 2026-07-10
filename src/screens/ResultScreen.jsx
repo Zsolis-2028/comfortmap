@@ -14,6 +14,8 @@ import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 import { GhostButton } from '../components/Button'
 
+const FOLLOW_UP_LIMIT = 3
+
 const FOLLOW_UP_SUGGESTIONS_BY_LANG = {
   en: [
     'Give me a step-by-step walkthrough',
@@ -198,6 +200,7 @@ export default function ResultScreen() {
   const [feedback, setFeedback] = useState(null)
   const [limitReached, setLimitReached] = useState(false)
   const [speaking, setSpeaking] = useState(false)
+  const [followUpCount, setFollowUpCount] = useState(0)
   const runningRef = useRef(false)
   const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -240,6 +243,7 @@ export default function ResultScreen() {
     setError('')
     setLimitReached(false)
     setFeedback(null)
+    setFollowUpCount(0)
     if (ttsSupported) { window.speechSynthesis.cancel(); setSpeaking(false) }
     try {
       const result = await getComfortMap({ userMessage: prompt, sensory, who, lang })
@@ -258,7 +262,7 @@ export default function ResultScreen() {
 
   const handleFollowUp = async (question) => {
     const q = question || followUpInput.trim()
-    if (!q) return
+    if (!q || followUpCount >= FOLLOW_UP_LIMIT) return
     setFollowUpLoading(true)
     setFollowUpInput('')
     setFeedback(null)
@@ -267,6 +271,7 @@ export default function ResultScreen() {
       const newHistory = [...history, { role: 'user', content: q }, { role: 'assistant', content: result }]
       setHistory(newHistory)
       setResponse(result)
+      setFollowUpCount(c => c + 1)
     } catch (err) {
       setError(err.message)
     }
@@ -443,8 +448,15 @@ export default function ResultScreen() {
           </div>
         )}
 
+        {/* Follow-up limit reached */}
+        {response && !followUpLoading && followUpCount >= FOLLOW_UP_LIMIT && (
+          <div style={{ marginTop: 20, textAlign: 'center', padding: '16px', color: COLORS.muted, fontSize: 14, lineHeight: 1.6 }}>
+            {t.followUpLimitReached || "You've reached the follow-up limit for this map. Start a new map to continue exploring 🌿"}
+          </div>
+        )}
+
         {/* Follow-up suggestions */}
-        {response && !followUpLoading && (
+        {response && !followUpLoading && followUpCount < FOLLOW_UP_LIMIT && (
           <div style={{ marginTop: 20 }}>
             <div style={{ fontSize: 13, color: COLORS.muted, fontWeight: 600, marginBottom: 10 }}>
               💬 {t.wantMore || 'Want to know more?'}
