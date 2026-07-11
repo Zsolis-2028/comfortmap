@@ -24,9 +24,10 @@ const ALLOWED_ORIGINS = new Set([
 // Best-effort per-instance limiter: serverless instances are short-lived and
 // not shared, so this resets on cold start and isn't consistent across
 // concurrent instances. It still blunts bursty abuse from a single instance.
-const RATE_LIMIT_MAX = 20
+const RATE_LIMIT_MAX = 20 // covers 4 maps + 3 follow-ups each for a legitimate user
+const ABUSE_THRESHOLD = 30 // requests past this in a window get flagged as likely abuse
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
-const rateLimitStore = new Map() // ip -> { count, resetAt }
+const rateLimitStore = new Map() // ip -> { count, resetAt, abuseFlagged }
 
 const SUSPICIOUS_REGEXES = [
   /javascript\s*:/i,
@@ -104,11 +105,18 @@ function sendJson(res, status, payload) {
   res.end(JSON.stringify(payload))
 }
 
+// Vercel's edge network is the first proxy hop a request passes through, so
+// it sets x-forwarded-for with the real client IP first in the list; any
+// further proxies append after it. x-real-ip is a fallback for local/dev
+// invocations where that header isn't set.
 function getClientIp(req) {
   const forwarded = req.headers['x-forwarded-for']
   if (typeof forwarded === 'string' && forwarded.length > 0) {
-    return forwarded.split(',')[0].trim()
+    const first = forwarded.split(',')[0].trim()
+    if (first) return first
   }
+  const realIp = req.headers['x-real-ip']
+  if (typeof realIp === 'string' && realIp.trim().length > 0) return realIp.trim()
   return req.socket?.remoteAddress || 'unknown'
 }
 
@@ -118,6 +126,7 @@ function logEvent(type, req, extra = {}) {
     type,
     origin: req.headers.origin || null,
     ip: getClientIp(req),
+    userAgent: req.headers['user-agent'] || null,
     ...extra,
   }
   console.error(JSON.stringify(entry))
@@ -133,14 +142,23 @@ function checkRateLimit(ip) {
   const now = Date.now()
   let entry = rateLimitStore.get(ip)
   if (!entry || now >= entry.resetAt) {
-    entry = { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS }
+    entry = { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS, abuseFlagged: false }
   }
   entry.count += 1
+
+  // Log abuse once per window, the moment an IP first crosses the threshold,
+  // rather than on every request after — that would flood the logs since
+  // rate-limited requests keep incrementing count even though they're blocked.
+  const isNewAbuse = entry.count > ABUSE_THRESHOLD && !entry.abuseFlagged
+  if (isNewAbuse) entry.abuseFlagged = true
+
   rateLimitStore.set(ip, entry)
   return {
     limited: entry.count > RATE_LIMIT_MAX,
     remaining: Math.max(0, RATE_LIMIT_MAX - entry.count),
     resetAt: entry.resetAt,
+    count: entry.count,
+    isNewAbuse,
   }
 }
 
@@ -205,6 +223,34 @@ function sanitizeText(value) {
   return text
 }
 
+// Checked before any content is sanitized or sent to Claude: rejects
+// malformed shapes outright rather than silently coercing them.
+function validateBody(body) {
+  if (typeof body.userMessage !== 'string' || body.userMessage.trim().length === 0) {
+    return 'userMessage is required.'
+  }
+  if (body.who !== undefined && body.who !== null && typeof body.who !== 'string') {
+    return 'who must be a string.'
+  }
+  if (body.lang !== undefined && body.lang !== null && typeof body.lang !== 'string') {
+    return 'lang must be a string.'
+  }
+  if (body.sensory !== undefined && !Array.isArray(body.sensory)) {
+    return 'sensory must be an array.'
+  }
+  if (body.conversationHistory !== undefined) {
+    if (!Array.isArray(body.conversationHistory)) {
+      return 'conversationHistory must be an array.'
+    }
+    for (const turn of body.conversationHistory) {
+      if (!turn || typeof turn !== 'object' || typeof turn.role !== 'string' || typeof turn.content !== 'string') {
+        return 'conversationHistory entries must have a string role and content.'
+      }
+    }
+  }
+  return null
+}
+
 async function readJsonBody(req, maxBytes) {
   // Vercel's Node runtime pre-parses the body onto req.body; the Vite
   // dev middleware hands us a raw stream instead, so support both.
@@ -255,8 +301,11 @@ module.exports = async function handler(req, res) {
   const ip = getClientIp(req)
   const rate = checkRateLimit(ip)
   setRateLimitHeaders(res, rate)
+  if (rate.isNewAbuse) {
+    logEvent('abuse_detected', req, { requestCount: rate.count })
+  }
   if (rate.limited) {
-    logEvent('rate_limited', req)
+    logEvent('rate_limited', req, { requestCount: rate.count })
     res.setHeader('Retry-After', String(Math.ceil((rate.resetAt - Date.now()) / 1000)))
     sendJson(res, 429, { error: 'Too many requests. Please try again later.' })
     return
@@ -293,6 +342,13 @@ module.exports = async function handler(req, res) {
   if (Buffer.byteLength(JSON.stringify(body), 'utf8') > MAX_BODY_BYTES) {
     logEvent('payload_too_large', req)
     sendJson(res, 413, { error: 'Request body too large.' })
+    return
+  }
+
+  const validationError = validateBody(body)
+  if (validationError) {
+    logEvent('invalid_request', req, { reason: validationError })
+    sendJson(res, 400, { error: validationError })
     return
   }
 
