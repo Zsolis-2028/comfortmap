@@ -12,7 +12,7 @@ export function PrimaryButton({ onClick, children, disabled = false, style = {} 
       disabled={disabled}
       style={{
         background: disabled
-          ? '#B7C9B4'
+          ? '#B9C6E0'
           : BRAND_GRADIENT,
         color: 'white',
         border: 'none',

@@ -27,7 +27,7 @@ export const getFlagUrl = (flagCode, width = 40) => `https://flagcdn.com/w${widt
 
 export const UI_TEXT = {
   en: {
-    tagline:         'Know before you go.',
+    tagline:         'Information. Preparation. Peace of mind.',
     whereGoing:      'Where are you going?',
     prepareYou:      'Tell us about the place. We\'ll prepare you.',
     buildMap:        'Build My Comfort Map →',
@@ -126,7 +126,7 @@ export const UI_TEXT = {
     toggleOn:         'On',
     toggleSystem:     'System',
     resetOnboardingDev: 'Reset onboarding (dev)',
-    splashSubtitle:   'Feel safe, confident, and prepared before entering any place — anywhere in the world.',
+    splashSubtitle:   'For every place you go.',
     statLanguages:    '10 languages',
     statVenues:       '16 venue types',
     statSensory:      '8 sensory profiles',
