@@ -6,7 +6,7 @@ import { useUser } from '../context/UserContext'
 import { getText } from '../data/languages'
 
 const TABS = [
-  { path: '/home',     emoji: '🗺️', labelKey: 'explore'  },
+  { path: '/home',     icon: '/icons/icon-192.png', labelKey: 'explore'  },
   { path: '/saved',    emoji: '🔖', labelKey: 'saved'    },
   { path: '/settings', emoji: '⚙️', labelKey: 'settings' },
 ]
@@ -52,7 +52,11 @@ export default function NavBar() {
               transition: 'opacity 0.2s',
             }}
           >
-            <span style={{ fontSize: 24 }} aria-hidden="true">{tab.emoji}</span>
+            {tab.icon ? (
+              <img src={tab.icon} alt="" width={24} height={24} style={{ borderRadius: 6 }} aria-hidden="true" />
+            ) : (
+              <span style={{ fontSize: 24 }} aria-hidden="true">{tab.emoji}</span>
+            )}
             <span style={{
               fontSize: 11,
               color: COLORS.forest,
