@@ -8,18 +8,18 @@
 // which resolves based on the user's Dark Mode setting.
 
 export const COLORS = {
-  // Brand — warm cream & sage
-  forest:   '#4A7C59', // dark green — headings, high-emphasis text
-  green:    '#4A7C59', // dark green — body-weight brand text/icons (kept legible on cream)
-  mint:     '#4A7C59', // dark green — accent labels & bullets (needs contrast on cards)
-  pale:     '#E8EDE0', // light sage tint — icon circle backgrounds
-  soft:     '#FDFAF5', // warm cream — primary app background
+  // Brand — blue, purple & teal (matches the ComfortMap pin logo)
+  forest:   '#1a1a2e', // headings, high-emphasis text
+  green:    '#1a1a2e', // body-weight brand text/icons
+  mint:     '#2EC4B6', // teal — accent labels & bullets (needs contrast on cards)
+  pale:     '#E4EEFC', // light blue tint — icon circle backgrounds
+  soft:     '#FFFFFF', // primary app background
 
   // UI
-  white:    '#F5F0E8', // card surface
-  text:     '#1a202c',
+  white:    '#FFFFFF', // card surface
+  text:     '#1a1a2e',
   muted:    '#6b7280',
-  border:   '#C8D5B9',
+  border:   '#D2E3F6',
 
   // Status
   warn:     '#fef3c7',
@@ -32,18 +32,18 @@ export const COLORS = {
 }
 
 export const DARK_COLORS = {
-  // Brand (sage family, kept legible on dark surfaces)
-  forest:   '#E8EDE0',
-  green:    '#9CB89E',
-  mint:     '#9CB89E',
-  pale:     '#2A3527',
-  soft:     '#1C211A',
+  // Brand (blue/purple/teal family, kept legible on dark surfaces)
+  forest:   '#E8E8F5',
+  green:    '#C7CEEA',
+  mint:     '#3DDBC9',
+  pale:     '#22283F',
+  soft:     '#15162B',
 
   // UI
-  white:    '#242A20',
-  text:     '#EDEAE0',
-  muted:    '#A3A895',
-  border:   '#3D4A38',
+  white:    '#1E2038',
+  text:     '#EDEAF0',
+  muted:    '#A3A8C0',
+  border:   '#3A3F5C',
 
   // Status
   warn:     '#3a2f12',
@@ -58,7 +58,7 @@ export const DARK_COLORS = {
 // The primary-button / hero-banner gradient is a fixed brand mark — it
 // always pairs with white text, so it intentionally does not change
 // between light and dark theme.
-export const BRAND_GRADIENT = 'linear-gradient(135deg, #4A7C59, #7C9A7E)'
+export const BRAND_GRADIENT = 'linear-gradient(135deg, #4A90D9, #7B68EE)'
 
 export const RADIUS = {
   sm:  '8px',
@@ -70,5 +70,5 @@ export const RADIUS = {
 
 export const SHADOW = {
   card: '0 2px 12px rgba(0,0,0,0.06)',
-  header: '0 1px 0 #C8D5B9',
+  header: '0 1px 0 #D2E3F6',
 }
