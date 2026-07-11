@@ -21,6 +21,9 @@ export default function OnboardingWho() {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16 }}>
+        <img src="/icons/icon-192.png" alt="ComfortMap" width={40} height={40} style={{ borderRadius: 10 }} />
+      </div>
       <Header title={t.whoTitle || 'Who is this for?'} onBack={() => navigate('/onboarding/language')} />
       <Screen>
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0 20px', lineHeight: 1.6 }}>
