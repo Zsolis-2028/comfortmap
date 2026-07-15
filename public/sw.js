@@ -1,4 +1,4 @@
-const CACHE_NAME = 'comfortmap-v2'
+const CACHE_NAME = 'comfortmap-v3'
 
 const APP_SHELL = [
   '/',
@@ -38,8 +38,8 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Navigations: try the network first so users get fresh content when
-  // online, falling back to the cached app shell when offline.
+  // Navigations: try the network first so users get fresh content (and the
+  // latest asset hashes) when online, falling back to the cached shell offline.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -53,8 +53,28 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Static assets: cache-first, populating the cache as new hashed
-  // build assets are requested.
+  // Scripts and styles (the hashed build chunks): network-first, so a fresh
+  // deploy's assets always win. Critically, never cache or serve a response
+  // that came back as HTML — a missing chunk that the host rewrites to
+  // index.html would otherwise poison the cache and throw
+  // "'text/html' is not a valid JavaScript MIME type".
+  if (request.destination === 'script' || request.destination === 'style') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const type = response.headers.get('Content-Type') || ''
+          if (response.ok && !type.includes('text/html')) {
+            const copy = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy))
+          }
+          return response
+        })
+        .catch(() => caches.match(request))
+    )
+    return
+  }
+
+  // Other static assets (images, manifest, etc.): cache-first.
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached
