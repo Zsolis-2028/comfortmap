@@ -6,6 +6,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { COLORS, DARK_COLORS } from '../styles/colors'
 import { getLang } from '../data/languages'
+import { supabase } from '../lib/supabaseClient'
 
 const UserContext = createContext(null)
 
@@ -63,6 +64,30 @@ export function UserProvider({ children }) {
     const handler = (e) => setSystemPrefersDark(e.matches)
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  // Account session + plan. Anonymous visitors are 'free'; signing in with a
+  // real account loads that account's plan (e.g. 'founder') and follows the
+  // user across devices.
+  const [session, setSession] = useState(null)
+  const [plan, setPlan] = useState('free')
+
+  useEffect(() => {
+    let active = true
+    async function loadPlan(sess) {
+      if (!active) return
+      setSession(sess)
+      if (!sess?.user) { setPlan('free'); return }
+      const { data } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', sess.user.id)
+        .maybeSingle()
+      if (active) setPlan((data && data.plan) || 'free')
+    }
+    supabase.auth.getSession().then(({ data }) => loadPlan(data.session))
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => loadPlan(sess))
+    return () => { active = false; sub.subscription.unsubscribe() }
   }, [])
 
   const isDark = darkMode === 'on' || (darkMode === 'system' && systemPrefersDark)
@@ -135,6 +160,8 @@ export function UserProvider({ children }) {
       darkMode, setDarkMode,
       accessibility, setAccessibility,
       isDark,
+      session, plan,
+      signedIn: Boolean(session && session.user && !session.user.is_anonymous),
       COLORS: COLORS_ACTIVE,
     }}>
       {children}

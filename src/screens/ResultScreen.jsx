@@ -186,7 +186,8 @@ function FormattedResponse({ text }) {
 export default function ResultScreen() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { lang, sensory, who, saveMap, COLORS } = useUser()
+  const { lang, sensory, who, saveMap, COLORS, plan } = useUser()
+  const unlimited = plan !== 'free' // founder / pro / family bypass the free daily cap
   const t = getText(lang)
   const FOLLOW_UP_SUGGESTIONS = FOLLOW_UP_SUGGESTIONS_BY_LANG[lang] || FOLLOW_UP_SUGGESTIONS_BY_LANG.en
 
@@ -245,7 +246,7 @@ export default function ResultScreen() {
 
   const runComfortMap = async () => {
     if (runningRef.current) return
-    if (hasReachedDailyLimit()) {
+    if (!unlimited && hasReachedDailyLimit()) {
       setLimitReached(true)
       return
     }
@@ -261,7 +262,7 @@ export default function ResultScreen() {
       const extraContext = verifiedContextFromState(state)
       setHasVerified(Boolean(extraContext))
       const result = await getComfortMap({ userMessage: prompt, sensory, who, lang, extraContext })
-      recordMapGenerated()
+      if (!unlimited) recordMapGenerated()
       setResponse(result)
       setHistory([
         { role: 'user', content: prompt },
