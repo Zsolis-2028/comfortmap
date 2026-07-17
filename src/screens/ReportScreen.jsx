@@ -11,17 +11,7 @@ import Header from '../components/Header'
 import Screen from '../components/Screen'
 import { PrimaryButton } from '../components/Button'
 import { submitReport } from '../lib/reports'
-
-// 1 = calmest / easiest, 3 = most intense / hardest
-const ATTRIBUTES = [
-  { key: 'noise',         label: 'Noise',           options: ['Quiet', 'Moderate', 'Loud'] },
-  { key: 'crowds',        label: 'Crowds',          options: ['Empty', 'Some', 'Packed'] },
-  { key: 'lighting',      label: 'Lighting',        options: ['Dim', 'Normal', 'Bright / harsh'] },
-  { key: 'parking',       label: 'Parking',         options: ['Easy', 'Okay', 'Hard'] },
-  { key: 'check_in',      label: 'Check-in',        options: ['Simple', 'A few steps', 'Confusing'] },
-  { key: 'accessibility', label: 'Accessibility',   options: ['Good', 'Partial', 'Poor'] },
-  { key: 'sensory',       label: 'Overall sensory', options: ['Calm', 'Manageable', 'Overwhelming'] },
-]
+import { ATTRIBUTES } from '../lib/attributes'
 
 export default function ReportScreen() {
   const navigate = useNavigate()

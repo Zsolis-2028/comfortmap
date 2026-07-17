@@ -63,3 +63,60 @@ export async function submitReport({ venueName, category, city, ratings }) {
   if (error) throw error
   return { venueId, inserted: rows.length }
 }
+
+// ---- READ side ----------------------------------------------------------
+
+// Look up a venue by name + city and return its per-attribute honest state
+// (Verified / Estimated / Unknown) from the venue_attribute_state view.
+// Returns null if we've never heard of this place — so the UI can stay honest
+// about not knowing yet.
+// Location/filler words stripped before matching, so "Shake Shack" and
+// "shake shack San Antonio, Texas" resolve to the same place.
+const LOCATION_STOPWORDS = new Set([
+  'san', 'antonio', 'texas', 'tx', 'usa', 'us', 'united', 'states',
+  'the', 'a', 'in', 'at', 'on', 'of', 'near',
+])
+
+function normalizeVenueName(str) {
+  return (str || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(' ')
+    .filter(w => w && !LOCATION_STOPWORDS.has(w))
+    .join(' ')
+    .trim()
+}
+
+export async function getVenueState({ name, city = 'San Antonio' }) {
+  const normSearch = normalizeVenueName(name)
+  if (!normSearch) return null
+  const collapse = (v) => v.replace(/ /g, '')
+  const cs = collapse(normSearch)
+
+  const { data: venues, error } = await supabase
+    .from('venues')
+    .select('id, name, category, city')
+    .eq('city', city)
+    .limit(500)
+  if (error) throw error
+  if (!venues || venues.length === 0) return null
+
+  // Match on normalized names, tolerating extra location/filler words and
+  // spacing differences on either side.
+  const venue = venues.find((v) => {
+    const n = normalizeVenueName(v.name)
+    if (!n) return false
+    const cn = collapse(n)
+    return n === normSearch || n.includes(normSearch) || normSearch.includes(n)
+      || cn === cs || cn.includes(cs) || cs.includes(cn)
+  })
+  if (!venue) return null
+
+  const { data: states, error: stErr } = await supabase
+    .from('venue_attribute_state')
+    .select('attribute, avg_rating, verified_count, shown_confidence, last_verified_at')
+    .eq('venue_id', venue.id)
+  if (stErr) throw stErr
+
+  return { venue, states: states || [] }
+}

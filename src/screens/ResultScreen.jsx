@@ -13,6 +13,7 @@ import Header from '../components/Header'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 import { GhostButton } from '../components/Button'
+import CommunityReports from '../components/CommunityReports'
 
 const FOLLOW_UP_LIMIT = 3
 
@@ -368,6 +369,8 @@ export default function ResultScreen() {
         rightLabel={saved ? `✓ ${t.saved || 'Saved'}` : (t.saveMap || '🔖 Save')}
       />
       <Screen>
+        <CommunityReports venueName={reportName} />
+
         {/* Error state */}
         {error && (
           <div role="status" aria-live="assertive" style={{
@@ -383,6 +386,14 @@ export default function ResultScreen() {
             <button onClick={runComfortMap} style={{ marginLeft: 8, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.errorText, fontSize: 14 }}>
               {t.tryAgain || 'Try again'}
             </button>
+          </div>
+        )}
+
+        {/* Honest label: the AI map is an estimate, shown beneath real reports */}
+        {response && (
+          <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 16, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+            <span aria-hidden="true">✨</span>
+            <span>AI estimate — a general read on this place, not yet confirmed by real visits.</span>
           </div>
         )}
 
