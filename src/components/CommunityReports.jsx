@@ -1,10 +1,13 @@
 // CommunityReports.jsx
-// The read side of the truth engine: shows REAL, attributed observations for
-// a venue — each marked VERIFIED, with how many people reported it and a
-// "Mixed" flag when reports disagree. Unreported attributes say "No data yet".
-// Renders nothing until there's at least one real report — we never fake a card.
+// The read side of the truth engine. Three honest states:
+//   • Verified — real reports exist: show them, with counts and a "Mixed"
+//     flag when people disagree.
+//   • Empty    — no real reports yet: say so plainly and invite the first one,
+//     rather than pretending the AI estimate below is confirmed.
+// Renders nothing only while still loading or with no place to look up.
 
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { RADIUS } from '../styles/colors'
 import { getVenueState } from '../lib/reports'
@@ -26,6 +29,7 @@ function summarize(stat, attr) {
 }
 
 export default function CommunityReports({ venueName, city = 'San Antonio' }) {
+  const navigate = useNavigate()
   const { COLORS } = useUser()
   const [data, setData] = useState(null)
   const [loaded, setLoaded] = useState(false)
@@ -39,11 +43,49 @@ export default function CommunityReports({ venueName, city = 'San Antonio' }) {
     return () => { active = false }
   }, [venueName, city])
 
-  if (!loaded || !data) return null
-  const byAttr = data.byAttr || {}
-  const verifiedCount = ATTRIBUTES.filter(a => byAttr[a.key] && byAttr[a.key].count > 0).length
-  if (verifiedCount === 0) return null // never fake a full card
+  if (!loaded || !venueName || !venueName.trim()) return null
 
+  const byAttr = (data && data.byAttr) || {}
+  const verifiedCount = ATTRIBUTES.filter(a => byAttr[a.key] && byAttr[a.key].count > 0).length
+
+  // ---- Empty state: no real reports yet — be honest, invite the first ----
+  if (verifiedCount === 0) {
+    return (
+      <div style={{
+        background: COLORS.pale,
+        border: `1.5px solid ${COLORS.border}`,
+        borderRadius: RADIUS.xl,
+        padding: '16px 18px',
+        marginTop: 16,
+      }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.forest, marginBottom: 4 }}>
+          🌱 No real visits logged here yet
+        </div>
+        <div style={{ fontSize: 13, color: COLORS.muted, lineHeight: 1.5, marginBottom: 12 }}>
+          The map below is an AI estimate — helpful, but not confirmed. If you've been here,
+          you can make it real for the next person in about 10 seconds.
+        </div>
+        <button
+          onClick={() => navigate('/report', { state: { venueName } })}
+          style={{
+            width: '100%',
+            background: COLORS.white,
+            border: `1.5px solid ${COLORS.mint}`,
+            borderRadius: RADIUS.lg,
+            padding: '12px',
+            fontSize: 14,
+            fontWeight: 700,
+            color: COLORS.forest,
+            cursor: 'pointer',
+          }}
+        >
+          📝 Be the first to add a real report →
+        </button>
+      </div>
+    )
+  }
+
+  // ---- Verified state: show the real reports ----
   return (
     <div style={{
       background: COLORS.white,
