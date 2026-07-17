@@ -112,11 +112,26 @@ export async function getVenueState({ name, city = 'San Antonio' }) {
   })
   if (!venue) return null
 
-  const { data: states, error: stErr } = await supabase
-    .from('venue_attribute_state')
-    .select('attribute, avg_rating, verified_count, shown_confidence, last_verified_at')
+  // Pull raw verified reports from the last ~18 months and summarize per
+  // attribute: how many, the running total (for the average), and the spread
+  // of answers (so the UI can flag "Mixed" when people disagree).
+  const cutoff = new Date(Date.now() - 548 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: obs, error: obsErr } = await supabase
+    .from('observations')
+    .select('attribute, rating, observed_at')
     .eq('venue_id', venue.id)
-  if (stErr) throw stErr
+    .eq('confidence', 'verified')
+    .gte('observed_at', cutoff)
+  if (obsErr) throw obsErr
 
-  return { venue, states: states || [] }
+  const byAttr = {}
+  for (const o of obs || []) {
+    if (o.rating == null) continue
+    const a = byAttr[o.attribute] || (byAttr[o.attribute] = { count: 0, sum: 0, dist: { 1: 0, 2: 0, 3: 0 } })
+    a.count += 1
+    a.sum += o.rating
+    a.dist[o.rating] = (a.dist[o.rating] || 0) + 1
+  }
+
+  return { venue, byAttr }
 }
