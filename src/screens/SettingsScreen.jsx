@@ -10,6 +10,7 @@ import { RADIUS } from '../styles/colors'
 import Header from '../components/Header'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
+import { signOut } from '../lib/auth'
 
 const TEXT_SIZE_OPTIONS = [
   { value: 'small',  labelKey: 'textSizeSmall',  fallback: 'Small' },
@@ -148,11 +149,24 @@ export default function SettingsScreen() {
     textSize, setTextSize,
     darkMode, setDarkMode,
     accessibility, setAccessibility,
+    session, plan, signedIn,
   } = useUser()
   const t = getText(lang)
   const [expandedRow, setExpandedRow] = useState(null)
 
   const toggleRow = (key) => setExpandedRow(prev => prev === key ? null : key)
+
+  const planLabel = ({
+    founder: 'Founder \u00b7 unlimited',
+    pro: 'Pro',
+    family: 'Family',
+    free: 'Free \u00b7 4 maps/day',
+  })[plan] || 'Free \u00b7 4 maps/day'
+
+  const handleSignOut = async () => {
+    try { await signOut() } catch {}
+    navigate('/home')
+  }
 
   const langLabel = LANGUAGES.find(l => l.code === lang)?.label || 'English'
   const whoOption = WHO_OPTIONS.find(w => w.key === who)
@@ -163,6 +177,36 @@ export default function SettingsScreen() {
       <Header title={t.settings || 'Settings'} />
       <Screen>
         <div style={{ marginTop: 16 }}>
+
+          <SettingsGroup title={t.account || 'Account'} COLORS={COLORS}>
+            {signedIn ? (
+              <>
+                <SettingsRow
+                  emoji="\U0001F464"
+                  label={(session && session.user && session.user.email) || 'Signed in'}
+                  value={planLabel}
+                  COLORS={COLORS}
+                />
+                <SettingsRow
+                  emoji="\U0001F6AA"
+                  label={t.signOut || 'Sign out'}
+                  value=""
+                  onClick={handleSignOut}
+                  last
+                  COLORS={COLORS}
+                />
+              </>
+            ) : (
+              <SettingsRow
+                emoji="\U0001F511"
+                label={t.signInCreate || 'Sign in / Create account'}
+                value=""
+                onClick={() => navigate('/auth')}
+                last
+                COLORS={COLORS}
+              />
+            )}
+          </SettingsGroup>
 
           <SettingsGroup title={t.profileSection || 'Profile'} COLORS={COLORS}>
             <SettingsRow
