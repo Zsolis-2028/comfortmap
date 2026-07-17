@@ -19,6 +19,7 @@ const OnboardingWho      = lazy(() => import('./screens/OnboardingWho'))
 const OnboardingSensory  = lazy(() => import('./screens/OnboardingSensory'))
 const HomeScreen         = lazy(() => import('./screens/HomeScreen'))
 const InputScreen        = lazy(() => import('./screens/InputScreen'))
+const ReportScreen       = lazy(() => import('./screens/ReportScreen'))
 const ResultScreen       = lazy(() => import('./screens/ResultScreen'))
 const SavedScreen        = lazy(() => import('./screens/SavedScreen'))
 const SettingsScreen     = lazy(() => import('./screens/SettingsScreen'))
@@ -48,6 +49,7 @@ export default function App() {
             {/* Main app */}
             <Route path="/home"                  element={<HomeScreen />} />
             <Route path="/input"                 element={<InputScreen />} />
+            <Route path="/report"                element={<ReportScreen />} />
             <Route path="/result"                element={<ResultScreen />} />
             <Route path="/saved"                 element={<SavedScreen />} />
             <Route path="/settings"              element={<SettingsScreen />} />

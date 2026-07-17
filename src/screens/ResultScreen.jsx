@@ -190,6 +190,14 @@ export default function ResultScreen() {
 
   const { prompt, venue } = location.state || {}
 
+  // A clean place-name to prefill the report screen with, stripped of the
+  // venue-type prefix and focus-tag suffix that InputScreen adds.
+  const reportName = (prompt || '')
+    .replace(/^Venue type:.*?\n+/s, '')
+    .split(/\n\nI especially want to know about:/)[0]
+    .trim()
+    .slice(0, 80)
+
   const [response, setResponse] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -560,6 +568,26 @@ export default function ResultScreen() {
             </button>
           ))}
         </div>
+
+        {response && (
+          <button
+            onClick={() => navigate('/report', { state: { venueName: reportName } })}
+            style={{
+              width: '100%',
+              marginTop: 20,
+              background: COLORS.pale,
+              border: `1.5px solid ${COLORS.mint}`,
+              borderRadius: RADIUS.lg,
+              padding: '14px',
+              fontSize: 14,
+              fontWeight: 700,
+              color: COLORS.forest,
+              cursor: 'pointer',
+            }}
+          >
+            📝 Been here? Add what it was really like →
+          </button>
+        )}
 
         <GhostButton onClick={() => navigate('/home')}>
           {t.newMap || '← Start a new map'}
