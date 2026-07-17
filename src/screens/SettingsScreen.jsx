@@ -157,11 +157,11 @@ export default function SettingsScreen() {
   const toggleRow = (key) => setExpandedRow(prev => prev === key ? null : key)
 
   const planLabel = ({
-    founder: 'Founder \u00b7 unlimited',
+    founder: 'Founder · unlimited',
     pro: 'Pro',
     family: 'Family',
-    free: 'Free \u00b7 4 maps/day',
-  })[plan] || 'Free \u00b7 4 maps/day'
+    free: 'Free · 4 maps/day',
+  })[plan] || 'Free · 4 maps/day'
 
   const handleSignOut = async () => {
     try { await signOut() } catch {}
@@ -182,13 +182,13 @@ export default function SettingsScreen() {
             {signedIn ? (
               <>
                 <SettingsRow
-                  emoji="\U0001F464"
+                  emoji="👤"
                   label={(session && session.user && session.user.email) || 'Signed in'}
                   value={planLabel}
                   COLORS={COLORS}
                 />
                 <SettingsRow
-                  emoji="\U0001F6AA"
+                  emoji="🚪"
                   label={t.signOut || 'Sign out'}
                   value=""
                   onClick={handleSignOut}
@@ -198,7 +198,7 @@ export default function SettingsScreen() {
               </>
             ) : (
               <SettingsRow
-                emoji="\U0001F511"
+                emoji="🔑"
                 label={t.signInCreate || 'Sign in / Create account'}
                 value=""
                 onClick={() => navigate('/auth')}
