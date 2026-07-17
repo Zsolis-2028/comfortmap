@@ -8,13 +8,14 @@ import { getText } from '../data/languages'
 const API_URL = '/api/comfort'
 
 // Main function to get a comfort map
-export const getComfortMap = async ({ userMessage, sensory, who, lang, conversationHistory = [] }) => {
+export const getComfortMap = async ({ userMessage, sensory, who, lang, conversationHistory = [], extraContext = '' }) => {
+  const fullMessage = extraContext ? `${userMessage}\n\n${extraContext}` : userMessage
   let response
   try {
     response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userMessage, sensory, who, lang, conversationHistory }),
+      body: JSON.stringify({ userMessage: fullMessage, sensory, who, lang, conversationHistory }),
     })
   } catch {
     // fetch() itself throws (not an HTTP error response) when there's no

@@ -14,6 +14,7 @@ import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 import { GhostButton } from '../components/Button'
 import CommunityReports from '../components/CommunityReports'
+import { getVenueState, verifiedContextFromState } from '../lib/reports'
 
 const FOLLOW_UP_LIMIT = 3
 
@@ -210,6 +211,7 @@ export default function ResultScreen() {
   const [limitReached, setLimitReached] = useState(false)
   const [speaking, setSpeaking] = useState(false)
   const [followUpCount, setFollowUpCount] = useState(0)
+  const [hasVerified, setHasVerified] = useState(false)
   const runningRef = useRef(false)
   const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -255,7 +257,10 @@ export default function ResultScreen() {
     setFollowUpCount(0)
     if (ttsSupported) { window.speechSynthesis.cancel(); setSpeaking(false) }
     try {
-      const result = await getComfortMap({ userMessage: prompt, sensory, who, lang })
+      const state = await getVenueState({ name: reportName }).catch(() => null)
+      const extraContext = verifiedContextFromState(state)
+      setHasVerified(Boolean(extraContext))
+      const result = await getComfortMap({ userMessage: prompt, sensory, who, lang, extraContext })
       recordMapGenerated()
       setResponse(result)
       setHistory([
@@ -393,7 +398,9 @@ export default function ResultScreen() {
         {response && (
           <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 16, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
             <span aria-hidden="true">✨</span>
-            <span>AI estimate — a general read on this place, not yet confirmed by real visits.</span>
+            <span>{hasVerified
+              ? 'AI summary — built around the verified reports above, with general estimates for the rest.'
+              : 'AI estimate — a general read on this place, not yet confirmed by real visits.'}</span>
           </div>
         )}
 

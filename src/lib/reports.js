@@ -6,6 +6,7 @@
 // a real person, really there. This is the data the whole product stands on.
 
 import { supabase } from './supabaseClient'
+import { ATTRIBUTES, labelForRating } from './attributes'
 
 // Make sure we have an auth session so Row Level Security lets us write.
 // We use anonymous sign-in: the visitor silently gets a real (anonymous)
@@ -134,4 +135,27 @@ export async function getVenueState({ name, city = 'San Antonio' }) {
   }
 
   return { venue, byAttr }
+}
+
+
+// Turn a venue's verified reports into a compact ground-truth block for the AI,
+// so the generated map defers to real data instead of guessing over it.
+// Returns null when there are no verified reports (AI then estimates freely).
+export function verifiedContextFromState(state) {
+  if (!state || !state.byAttr) return null
+  const lines = []
+  for (const attr of ATTRIBUTES) {
+    const s = state.byAttr[attr.key]
+    if (s && s.count > 0) {
+      const label = labelForRating(attr, s.sum / s.count)
+      lines.push(`- ${attr.label}: ${label} (${s.count} report${s.count > 1 ? 's' : ''})`)
+    }
+  }
+  if (lines.length === 0) return null
+  return (
+    'VERIFIED COMMUNITY REPORTS for this exact place, from real visitors. ' +
+    'Treat these as ground truth: your Comfort Factors MUST agree with them and ' +
+    'must not contradict them. Use general knowledge only for details not listed here.\n' +
+    lines.join('\n')
+  )
 }
