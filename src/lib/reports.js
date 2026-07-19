@@ -159,3 +159,41 @@ export function verifiedContextFromState(state) {
     lines.join('\n')
   )
 }
+
+// List venues in a city that have at least one verified report, with counts —
+// powers the Explore screen so real data becomes visible.
+export async function getMappedVenues({ city = 'San Antonio' } = {}) {
+  const { data: venues, error } = await supabase
+    .from('venues')
+    .select('id, name, category, city')
+    .eq('city', city)
+    .limit(500)
+  if (error) throw error
+  if (!venues || venues.length === 0) return []
+
+  const ids = venues.map(v => v.id)
+  const cutoff = new Date(Date.now() - 548 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: obs, error: obsErr } = await supabase
+    .from('observations')
+    .select('venue_id, attribute, contributor_id')
+    .in('venue_id', ids)
+    .eq('confidence', 'verified')
+    .gte('observed_at', cutoff)
+  if (obsErr) throw obsErr
+
+  const stats = {}
+  for (const o of obs || []) {
+    const s = stats[o.venue_id] || (stats[o.venue_id] = { attrs: new Set(), people: new Set() })
+    s.attrs.add(o.attribute)
+    if (o.contributor_id) s.people.add(o.contributor_id)
+  }
+
+  return venues
+    .map(v => ({
+      ...v,
+      verifiedAttrs: (stats[v.id] && stats[v.id].attrs.size) || 0,
+      visits: (stats[v.id] && stats[v.id].people.size) || 0,
+    }))
+    .filter(v => v.verifiedAttrs > 0)
+    .sort((a, b) => b.verifiedAttrs - a.verifiedAttrs || b.visits - a.visits)
+}

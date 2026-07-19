@@ -6,7 +6,8 @@ import { useUser } from '../context/UserContext'
 import { getText } from '../data/languages'
 
 const TABS = [
-  { path: '/home',     icon: '/icons/icon-192.png', labelKey: 'explore'  },
+  { path: '/home',     icon: '/icons/icon-192.png', labelKey: 'home'     },
+  { path: '/explore',  emoji: '🧭', labelKey: 'explore'  },
   { path: '/saved',    emoji: '🔖', labelKey: 'saved'    },
   { path: '/settings', emoji: '⚙️', labelKey: 'settings' },
 ]
