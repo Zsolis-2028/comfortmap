@@ -15,7 +15,7 @@ const WELCOME_STORAGE_KEY = 'cm_welcome_seen'
 
 export default function HomeScreen() {
   const navigate = useNavigate()
-  const { lang, sensory, COLORS } = useUser()
+  const { lang, sensory, COLORS, signedIn } = useUser()
   const t = getText(lang)
   const [input, setInput] = useState('')
   const [locating, setLocating] = useState(false)
@@ -134,8 +134,25 @@ export default function HomeScreen() {
         color: 'white',
         padding: '32px 20px 28px',
       }}>
-        <div style={{ fontSize: 12, opacity: 0.65, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 }}>
-          🗺️ ComfortMap
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ fontSize: 12, opacity: 0.65, letterSpacing: 3, textTransform: 'uppercase' }}>
+            🗺️ ComfortMap
+          </div>
+          <button
+            onClick={() => navigate(signedIn ? '/settings' : '/auth')}
+            style={{
+              background: 'rgba(255,255,255,0.18)',
+              border: 'none',
+              color: 'white',
+              borderRadius: 999,
+              padding: '5px 12px',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {signedIn ? '👤 Account' : (t.signInShort || 'Sign in')}
+          </button>
         </div>
         <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.5, marginBottom: 6 }}>
           {t.whereGoing || 'Where are you going?'}
