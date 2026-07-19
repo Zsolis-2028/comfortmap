@@ -58,7 +58,7 @@ export default function ExploreScreen() {
           venues.map(v => (
             <button
               key={v.id}
-              onClick={() => navigate('/result', { state: { prompt: v.name } })}
+              onClick={() => navigate('/venue', { state: { venueName: v.name } })}
               style={{
                 width: '100%',
                 textAlign: 'left',
