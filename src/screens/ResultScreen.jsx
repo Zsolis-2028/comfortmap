@@ -213,6 +213,7 @@ export default function ResultScreen() {
   const [speaking, setSpeaking] = useState(false)
   const [followUpCount, setFollowUpCount] = useState(0)
   const [hasVerified, setHasVerified] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
   const runningRef = useRef(false)
   const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -291,6 +292,22 @@ export default function ResultScreen() {
       setError(err.message)
     }
     setFollowUpLoading(false)
+  }
+
+  const handleShare = async () => {
+    const url = 'https://comfortmap.app'
+    const text = `Know before you go \u2014 what to expect${reportName ? ` at ${reportName}` : ''}, from ComfortMap. ${url}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'ComfortMap', text, url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        setShareCopied(true)
+        setTimeout(() => setShareCopied(false), 2000)
+      }
+    } catch {
+      /* user cancelled or share unavailable \u2014 no-op */
+    }
   }
 
   const handleSave = () => {
@@ -561,7 +578,7 @@ export default function ResultScreen() {
         {/* Actions */}
         <div style={{ display: 'grid', gridTemplateColumns: (ttsSupported && response) ? 'repeat(3, 1fr)' : '1fr 1fr', gap: 10, marginTop: 20 }}>
           {[
-            [t.shareMap || '📤 Share', () => {}],
+            [shareCopied ? '✓ Link copied' : (t.shareMap || '📤 Share'), handleShare],
             [t.regenerate || '🔄 Regenerate', runComfortMap],
             ...((ttsSupported && response) ? [[
               speaking ? (t.stopReading || '⏹ Stop') : (t.readAloud || '🔊 Read aloud'),

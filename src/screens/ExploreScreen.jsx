@@ -17,6 +17,7 @@ export default function ExploreScreen() {
   const navigate = useNavigate()
   const { COLORS } = useUser()
   const [venues, setVenues] = useState(null) // null = loading
+  const [query, setQuery] = useState('')
 
   useEffect(() => {
     let active = true
@@ -26,6 +27,9 @@ export default function ExploreScreen() {
     return () => { active = false }
   }, [])
 
+  const q = query.trim().toLowerCase()
+  const filtered = (venues || []).filter(v => v.name.toLowerCase().includes(q))
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
       <Header title="Explore" />
@@ -33,6 +37,27 @@ export default function ExploreScreen() {
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>
           Places people have actually mapped in San Antonio — built from real visits, not guesses.
         </p>
+
+        {venues && venues.length > 0 && (
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search mapped places…"
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              borderRadius: RADIUS.lg,
+              border: `1.5px solid ${COLORS.border}`,
+              padding: '12px 14px',
+              fontSize: 14,
+              fontFamily: 'inherit',
+              outline: 'none',
+              background: COLORS.white,
+              color: COLORS.text,
+              marginBottom: 14,
+            }}
+          />
+        )}
 
         {venues === null ? (
           <div style={{ textAlign: 'center', color: COLORS.muted, fontSize: 14, padding: '32px 0' }}>
@@ -54,8 +79,12 @@ export default function ExploreScreen() {
               Search a place you've visited and add a quick report — you'll be the first to put it on the map.
             </div>
           </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', color: COLORS.muted, fontSize: 13, padding: '24px 0' }}>
+            No mapped places match “{query}”.
+          </div>
         ) : (
-          venues.map(v => (
+          filtered.map(v => (
             <button
               key={v.id}
               onClick={() => navigate('/venue', { state: { venueName: v.name } })}
