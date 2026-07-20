@@ -15,9 +15,33 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
 })
 
+// Vite fires this when a module preload fails — almost always a stale page
+// pointing at chunks a newer deploy has replaced. Reload once (loop-guarded)
+// to pull the fresh build.
+window.addEventListener('vite:preloadError', () => {
+  const last = Number(sessionStorage.getItem('cm_chunk_reload_at') || 0)
+  if (Date.now() - last > 10000) {
+    sessionStorage.setItem('cm_chunk_reload_at', String(Date.now()))
+    window.location.reload()
+  }
+})
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Sentry.ErrorBoundary fallback={<p>An error has occurred. Please refresh the page.</p>}>
+    <Sentry.ErrorBoundary
+      fallback={
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32, fontFamily: 'system-ui, sans-serif', color: '#1a1a2e' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🧭</div>
+          <p style={{ fontSize: 16, marginBottom: 20 }}>Something hiccuped. A quick refresh should fix it.</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ background: 'linear-gradient(135deg, #4A90D9, #7B68EE)', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 24px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
+          >
+            Refresh
+          </button>
+        </div>
+      }
+    >
       <BrowserRouter>
         <App />
       </BrowserRouter>

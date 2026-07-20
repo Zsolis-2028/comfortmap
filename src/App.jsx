@@ -11,25 +11,43 @@ import CookieConsent from './components/CookieConsent'
 import SkipLink from './components/SkipLink'
 import OfflineScreen from './screens/OfflineScreen'
 
+// Wrap a lazy import so that if a chunk fails to load — almost always because a
+// new deploy replaced the old hashed file while this page was still open — we
+// reload once to fetch the fresh build instead of surfacing an error. Guarded
+// by a timestamp so it can never turn into a reload loop.
+function lazyWithRetry(importer) {
+  return lazy(() =>
+    importer().catch((err) => {
+      const last = Number(sessionStorage.getItem('cm_chunk_reload_at') || 0)
+      if (Date.now() - last > 10000) {
+        sessionStorage.setItem('cm_chunk_reload_at', String(Date.now()))
+        window.location.reload()
+        return new Promise(() => {}) // never resolves; the page is reloading
+      }
+      throw err
+    })
+  )
+}
+
 // Screens — lazy-loaded so each route ships its own chunk instead of
 // bloating the initial bundle.
-const SplashScreen      = lazy(() => import('./screens/SplashScreen'))
-const OnboardingLang     = lazy(() => import('./screens/OnboardingLang'))
-const OnboardingWho      = lazy(() => import('./screens/OnboardingWho'))
-const OnboardingSensory  = lazy(() => import('./screens/OnboardingSensory'))
-const HomeScreen         = lazy(() => import('./screens/HomeScreen'))
-const InputScreen        = lazy(() => import('./screens/InputScreen'))
-const ReportScreen       = lazy(() => import('./screens/ReportScreen'))
-const AuthScreen         = lazy(() => import('./screens/AuthScreen'))
-const ExploreScreen      = lazy(() => import('./screens/ExploreScreen'))
-const VenueScreen        = lazy(() => import('./screens/VenueScreen'))
-const ResultScreen       = lazy(() => import('./screens/ResultScreen'))
-const SavedScreen        = lazy(() => import('./screens/SavedScreen'))
-const SettingsScreen     = lazy(() => import('./screens/SettingsScreen'))
-const AboutScreen        = lazy(() => import('./screens/AboutScreen'))
-const PrivacyScreen      = lazy(() => import('./screens/PrivacyScreen'))
-const TermsScreen        = lazy(() => import('./screens/TermsScreen'))
-const NotFoundScreen     = lazy(() => import('./screens/NotFoundScreen'))
+const SplashScreen      = lazyWithRetry(() => import('./screens/SplashScreen'))
+const OnboardingLang     = lazyWithRetry(() => import('./screens/OnboardingLang'))
+const OnboardingWho      = lazyWithRetry(() => import('./screens/OnboardingWho'))
+const OnboardingSensory  = lazyWithRetry(() => import('./screens/OnboardingSensory'))
+const HomeScreen         = lazyWithRetry(() => import('./screens/HomeScreen'))
+const InputScreen        = lazyWithRetry(() => import('./screens/InputScreen'))
+const ReportScreen       = lazyWithRetry(() => import('./screens/ReportScreen'))
+const AuthScreen         = lazyWithRetry(() => import('./screens/AuthScreen'))
+const ExploreScreen      = lazyWithRetry(() => import('./screens/ExploreScreen'))
+const VenueScreen        = lazyWithRetry(() => import('./screens/VenueScreen'))
+const ResultScreen       = lazyWithRetry(() => import('./screens/ResultScreen'))
+const SavedScreen        = lazyWithRetry(() => import('./screens/SavedScreen'))
+const SettingsScreen     = lazyWithRetry(() => import('./screens/SettingsScreen'))
+const AboutScreen        = lazyWithRetry(() => import('./screens/AboutScreen'))
+const PrivacyScreen      = lazyWithRetry(() => import('./screens/PrivacyScreen'))
+const TermsScreen        = lazyWithRetry(() => import('./screens/TermsScreen'))
+const NotFoundScreen     = lazyWithRetry(() => import('./screens/NotFoundScreen'))
 
 export default function App() {
   const isOnline = useOnlineStatus()
