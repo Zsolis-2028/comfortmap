@@ -43,7 +43,7 @@ export async function findOrCreateVenue({ name, category = 'other', city = 'San 
 
 // ratings: { noise: 1..3, crowds: 1..3, ... } — only the attributes the
 // visitor actually tapped. Writes one observation row per rated attribute.
-export async function submitReport({ venueName, category, city, ratings }) {
+export async function submitReport({ venueName, category, city, ratings, note }) {
   const user = await ensureSignedIn()
   const venueId = await findOrCreateVenue({ name: venueName, category, city })
 
@@ -57,6 +57,28 @@ export async function submitReport({ venueName, category, city, ratings }) {
       confidence: 'verified',
       contributor_id: user.id,
     }))
+
+  // Optional free-text note — the specific "why" the 1–3 taps can't capture
+  // (e.g. "smells like grease sometimes", "cold inside"). It rides on the
+  // sensory observation: attached to a sensory rating if one was given,
+  // otherwise saved as a rating-less sensory row so it never skews an average.
+  const cleanNote = typeof note === 'string' ? note.trim().slice(0, 280) : ''
+  if (cleanNote) {
+    const sensoryRow = rows.find(r => r.attribute === 'sensory')
+    if (sensoryRow) {
+      sensoryRow.detail = cleanNote
+    } else {
+      rows.push({
+        venue_id: venueId,
+        attribute: 'sensory',
+        rating: null,
+        detail: cleanNote,
+        source: 'user_report',
+        confidence: 'verified',
+        contributor_id: user.id,
+      })
+    }
+  }
 
   if (rows.length === 0) return { venueId, inserted: 0 }
 
@@ -119,22 +141,27 @@ export async function getVenueState({ name, city = 'San Antonio' }) {
   const cutoff = new Date(Date.now() - 548 * 24 * 60 * 60 * 1000).toISOString()
   const { data: obs, error: obsErr } = await supabase
     .from('observations')
-    .select('attribute, rating, observed_at')
+    .select('attribute, rating, detail, observed_at')
     .eq('venue_id', venue.id)
     .eq('confidence', 'verified')
     .gte('observed_at', cutoff)
   if (obsErr) throw obsErr
 
   const byAttr = {}
+  const notes = []
   for (const o of obs || []) {
+    // Collect any free-text note first, regardless of whether this row carries
+    // a rating (a note-only row has rating = null).
+    if (o.detail && o.detail.trim()) notes.push({ text: o.detail.trim(), at: o.observed_at })
     if (o.rating == null) continue
     const a = byAttr[o.attribute] || (byAttr[o.attribute] = { count: 0, sum: 0, dist: { 1: 0, 2: 0, 3: 0 } })
     a.count += 1
     a.sum += o.rating
     a.dist[o.rating] = (a.dist[o.rating] || 0) + 1
   }
+  notes.sort((a, b) => (b.at || '').localeCompare(a.at || '')) // newest first
 
-  return { venue, byAttr }
+  return { venue, byAttr, notes }
 }
 
 
@@ -175,7 +202,7 @@ export async function getMappedVenues({ city = 'San Antonio' } = {}) {
   const cutoff = new Date(Date.now() - 548 * 24 * 60 * 60 * 1000).toISOString()
   const { data: obs, error: obsErr } = await supabase
     .from('observations')
-    .select('venue_id, attribute, contributor_id')
+    .select('venue_id, attribute, rating, contributor_id')
     .in('venue_id', ids)
     .eq('confidence', 'verified')
     .gte('observed_at', cutoff)
@@ -184,7 +211,9 @@ export async function getMappedVenues({ city = 'San Antonio' } = {}) {
   const stats = {}
   for (const o of obs || []) {
     const s = stats[o.venue_id] || (stats[o.venue_id] = { attrs: new Set(), people: new Set() })
-    s.attrs.add(o.attribute)
+    // Only rated observations count toward "X of 7 details"; note-only rows
+    // (rating = null) still count the person as a visit but don't inflate it.
+    if (o.rating != null) s.attrs.add(o.attribute)
     if (o.contributor_id) s.people.add(o.contributor_id)
   }
 

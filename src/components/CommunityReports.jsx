@@ -143,6 +143,26 @@ export default function CommunityReports({ venueName, city = 'San Antonio' }) {
           </div>
         )
       })}
+
+      {data && data.notes && data.notes.length > 0 && (
+        <div style={{ borderTop: `1px solid ${COLORS.border}`, marginTop: 4, paddingTop: 12, paddingBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: COLORS.forest, marginBottom: 8 }}>
+            💬 What visitors mentioned
+          </div>
+          {data.notes.slice(0, 5).map((n, i) => (
+            <div key={i} style={{
+              fontSize: 13,
+              color: COLORS.text,
+              lineHeight: 1.5,
+              marginBottom: 8,
+              paddingLeft: 12,
+              borderLeft: `2px solid ${COLORS.mint}`,
+            }}>
+              “{n.text}”
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

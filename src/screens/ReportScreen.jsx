@@ -20,6 +20,7 @@ export default function ReportScreen() {
 
   const [venueName, setVenueName] = useState(location.state?.venueName || '')
   const [ratings, setRatings] = useState({})
+  const [note, setNote] = useState('')
   const [status, setStatus] = useState('idle') // idle | saving | done | error
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -27,7 +28,8 @@ export default function ReportScreen() {
     setRatings(prev => ({ ...prev, [key]: prev[key] === value ? undefined : value }))
 
   const ratedCount = Object.values(ratings).filter(v => v != null).length
-  const canSubmit = venueName.trim().length > 0 && ratedCount > 0 && status !== 'saving'
+  const canSubmit = venueName.trim().length > 0 &&
+    (ratedCount > 0 || note.trim().length > 0) && status !== 'saving'
 
   const handleSubmit = async () => {
     setStatus('saving')
@@ -41,6 +43,7 @@ export default function ReportScreen() {
         category: location.state?.category || 'other',
         city: location.state?.city || 'San Antonio',
         ratings: clean,
+        note,
       })
       setStatus('done')
     } catch (err) {
@@ -131,6 +134,36 @@ export default function ReportScreen() {
             </div>
           </div>
         ))}
+
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.forest, marginBottom: 8 }}>
+            Anything else worth knowing? <span style={{ fontWeight: 400, color: COLORS.muted }}>(optional)</span>
+          </div>
+          <textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            maxLength={280}
+            rows={3}
+            placeholder="e.g. smells like grease sometimes, cold inside, TVs are loud"
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              borderRadius: RADIUS.lg,
+              border: `1.5px solid ${COLORS.border}`,
+              padding: '12px 14px',
+              fontSize: 14,
+              fontFamily: 'inherit',
+              lineHeight: 1.5,
+              outline: 'none',
+              resize: 'vertical',
+              background: COLORS.white,
+              color: COLORS.text,
+            }}
+          />
+          <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 6, lineHeight: 1.5 }}>
+            The specifics a rating can't capture — the exact thing someone with that sensitivity would want to know.
+          </div>
+        </div>
 
         {status === 'error' && (
           <div style={{
