@@ -31,6 +31,10 @@ export default function ExploreScreen() {
   const q = query.trim().toLowerCase()
   const filtered = (venues || []).filter(v => v.name.toLowerCase().includes(q))
 
+  // Live social proof — computed from the data we already loaded, no extra query.
+  const placeCount = (venues || []).length
+  const visitCount = (venues || []).reduce((n, v) => n + (v.visits || 0), 0)
+
   return (
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
       <Header title="Explore" />
@@ -38,6 +42,21 @@ export default function ExploreScreen() {
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>
           Places people have actually mapped in San Antonio — built from real visits, not guesses.
         </p>
+
+        {placeCount > 0 && (
+          <div style={{
+            background: COLORS.pale,
+            borderRadius: RADIUS.lg,
+            padding: '10px 14px',
+            marginBottom: 16,
+            fontSize: 13,
+            fontWeight: 700,
+            color: COLORS.forest,
+            textAlign: 'center',
+          }}>
+            🌱 {placeCount} {placeCount === 1 ? 'place' : 'places'} · {visitCount} real {visitCount === 1 ? 'visit' : 'visits'} mapped in San Antonio
+          </div>
+        )}
 
         <PrimaryButton onClick={() => navigate('/report')} style={{ marginBottom: 16 }}>
           ➕ Add a place you've been
