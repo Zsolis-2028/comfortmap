@@ -13,6 +13,10 @@ const ANTHROPIC_TIMEOUT_MS = 30000
 
 const MAX_BODY_BYTES = 10 * 1024 // 10kb
 const MAX_FIELD_LENGTH = 2000
+// M2: cap how many prior turns a client can send. A real ComfortMap chat is a
+// handful of turns; anything longer is either abuse (a forged history to
+// jailbreak the system prompt) or accidental bloat. Keep the most recent turns.
+const MAX_HISTORY_TURNS = 12
 
 const ALLOWED_ORIGINS = new Set([
   'https://comfortmap.vercel.app',
@@ -133,12 +137,6 @@ function logEvent(type, req, extra = {}) {
     ...extra,
   }
   console.error(JSON.stringify(entry))
-}
-
-function previewOf(value, length = 60) {
-  if (typeof value !== 'string') return null
-  const flat = value.replace(/\s+/g, ' ').trim()
-  return flat.length > length ? `${flat.slice(0, length)}…` : flat
 }
 
 function checkRateLimit(ip) {
@@ -277,7 +275,13 @@ async function readJsonBody(req, maxBytes) {
 module.exports = async function handler(req, res) {
   const origin = req.headers.origin
 
-  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+  // H1: require a valid Origin. Our app calls this endpoint same-origin, so a
+  // real browser request always carries an allow-listed Origin. Scripts / curl
+  // that omit Origin (the #1 cost-abuse vector) used to be waved through — now
+  // they're rejected. A determined caller can still forge an Origin header, so
+  // this isn't airtight; true enforcement is per-user auth (Phase 11). But it
+  // closes the wide-open door, and the $20 spend cap remains the hard backstop.
+  if (!origin || !ALLOWED_ORIGINS.has(origin)) {
     logEvent('cors_rejected', req)
     sendJson(res, 403, { error: 'Origin not allowed.' })
     return
@@ -356,7 +360,9 @@ module.exports = async function handler(req, res) {
   }
 
   if (collectTextFields(body).some(isSuspicious)) {
-    logEvent('suspicious_input', req, { inputPreview: previewOf(body.userMessage) })
+    // L2: do NOT log the message content. Users often search places tied to
+    // anxiety, disability, or a child's needs — that text stays private.
+    logEvent('suspicious_input', req)
     sendJson(res, 400, { error: 'Input contains disallowed content.' })
     return
   }
@@ -377,6 +383,7 @@ module.exports = async function handler(req, res) {
         .filter((turn) => turn && typeof turn.role === 'string' && typeof turn.content === 'string')
         .map((turn) => ({ role: turn.role, content: sanitizeText(turn.content) }))
         .filter((turn) => turn.content)
+        .slice(-MAX_HISTORY_TURNS) // M2: only keep the most recent turns
     : []
 
   const systemPrompt = buildSystemPrompt({ sensory, who, lang })
@@ -405,8 +412,10 @@ module.exports = async function handler(req, res) {
     const data = await upstream.json()
 
     if (!upstream.ok) {
-      logEvent('upstream_error', req, { status: upstream.status })
-      sendJson(res, upstream.status, { error: data.error?.message || 'Something went wrong. Please try again.' })
+      // L1: log the upstream detail server-side only; never echo it to the
+      // client, which could leak internal error specifics.
+      logEvent('upstream_error', req, { status: upstream.status, detail: data.error?.message || null })
+      sendJson(res, upstream.status, { error: 'Something went wrong. Please try again.' })
       return
     }
 
