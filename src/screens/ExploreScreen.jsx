@@ -10,6 +10,7 @@ import { RADIUS } from '../styles/colors'
 import Header from '../components/Header'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
+import { PrimaryButton } from '../components/Button'
 import { getMappedVenues } from '../lib/reports'
 import { ATTRIBUTES } from '../lib/attributes'
 
@@ -37,6 +38,10 @@ export default function ExploreScreen() {
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>
           Places people have actually mapped in San Antonio — built from real visits, not guesses.
         </p>
+
+        <PrimaryButton onClick={() => navigate('/report')} style={{ marginBottom: 16 }}>
+          ➕ Add a place you've been
+        </PrimaryButton>
 
         {venues && venues.length > 0 && (
           <input
