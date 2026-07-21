@@ -26,7 +26,10 @@ function sendJson(res, status, payload) {
 
 module.exports = async function handler(req, res) {
   const origin = req.headers.origin
-  if (!origin || !ALLOWED_ORIGINS.has(origin)) {
+  // Same-origin GET requests don't send an Origin header, so only reject a
+  // request from a KNOWN different origin. Cost is capped by the Google quota +
+  // budget alert, so an occasional direct call is harmless.
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
     sendJson(res, 403, { error: 'Origin not allowed.' })
     return
   }
