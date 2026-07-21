@@ -29,6 +29,20 @@ window.addEventListener('vite:preloadError', () => {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Sentry.ErrorBoundary
+      onError={(error) => {
+        // Last-resort safety net: if a chunk/import failure bubbles all the way
+        // up here (e.g. iOS Safari's "Importing a module script failed"), reload
+        // once to fetch the fresh build. Shares the same guard as lazyWithRetry
+        // and vite:preloadError so it can never loop.
+        const msg = String((error && error.message) || '')
+        if (/module script|dynamically imported module|importing a module/i.test(msg)) {
+          const last = Number(sessionStorage.getItem('cm_chunk_reload_at') || 0)
+          if (Date.now() - last > 10000) {
+            sessionStorage.setItem('cm_chunk_reload_at', String(Date.now()))
+            window.location.reload()
+          }
+        }
+      }}
       fallback={
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32, fontFamily: 'system-ui, sans-serif', color: '#1a1a2e' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🧭</div>
