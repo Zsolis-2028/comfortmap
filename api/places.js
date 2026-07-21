@@ -42,10 +42,14 @@ module.exports = async function handler(req, res) {
 
   const url = new URL(req.url, 'http://localhost')
   const q = (url.searchParams.get('q') || '').trim()
+  const debug = url.searchParams.get('debug') === '1'
   if (q.length < 3) { sendJson(res, 200, { suggestions: [] }); return }
 
   const key = process.env.GOOGLE_PLACES_API_KEY
-  if (!key) { sendJson(res, 200, { suggestions: [] }); return } // fail soft: not configured yet
+  if (!key) {
+    sendJson(res, 200, { suggestions: [], ...(debug ? { _debug: 'NO_KEY_IN_ENV' } : {}) })
+    return
+  }
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
@@ -64,7 +68,11 @@ module.exports = async function handler(req, res) {
       signal: controller.signal,
     })
     const data = await r.json()
-    if (!r.ok) { sendJson(res, 200, { suggestions: [] }); return } // fail soft
+    if (!r.ok) {
+      // fail soft — but if ?debug=1, surface Google's actual error so we can see why.
+      sendJson(res, 200, { suggestions: [], ...(debug ? { _debug: { status: r.status, error: data.error || data } } : {}) })
+      return
+    }
 
     const suggestions = (data.suggestions || [])
       .map((s) => s.placePrediction)
@@ -77,9 +85,9 @@ module.exports = async function handler(req, res) {
       }))
       .filter((s) => s.placeId && s.name)
 
-    sendJson(res, 200, { suggestions })
-  } catch {
-    sendJson(res, 200, { suggestions: [] }) // fail soft on timeout / network
+    sendJson(res, 200, { suggestions, ...(debug ? { _debug: { status: 200, rawCount: (data.suggestions || []).length } } : {}) })
+  } catch (err) {
+    sendJson(res, 200, { suggestions: [], ...(debug ? { _debug: { thrown: String(err && err.message || err) } } : {}) })
   } finally {
     clearTimeout(timeoutId)
   }
