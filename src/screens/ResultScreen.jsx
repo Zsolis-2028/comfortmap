@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { getComfortMap, askFollowUp } from '../utils/claude'
-import { hasReachedDailyLimit, recordMapGenerated, DAILY_MAP_LIMIT } from '../utils/rateLimit'
+import { hasReachedMonthlyLimit, recordMapGenerated, MONTHLY_MAP_LIMIT } from '../utils/rateLimit'
 import { getText } from '../data/languages'
 import { RADIUS, BRAND_GRADIENT } from '../styles/colors'
 import Header from '../components/Header'
@@ -247,7 +247,7 @@ export default function ResultScreen() {
 
   const runComfortMap = async () => {
     if (runningRef.current) return
-    if (!unlimited && hasReachedDailyLimit()) {
+    if (!unlimited && hasReachedMonthlyLimit()) {
       setLimitReached(true)
       return
     }
@@ -334,10 +334,10 @@ export default function ResultScreen() {
     }}>
       <div style={{ fontSize: 52, marginBottom: 16 }}>🌙</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
-        {(t.limitReachedTitle || "You've used your {n} comfort maps for today").replace('{n}', DAILY_MAP_LIMIT)}
+        {(t.limitReachedTitle || "You've used your {n} comfort maps for this month").replace('{n}', MONTHLY_MAP_LIMIT)}
       </div>
       <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 280, lineHeight: 1.6, marginBottom: 28 }}>
-        {t.limitReachedSubtitle || 'Take a breath — your maps will refresh tomorrow. Come back then for more.'}
+        {t.limitReachedSubtitle || 'Take a breath — your maps refresh at the start of next month. Come back then for more.'}
       </div>
       <div style={{ width: '100%', maxWidth: 280 }}>
         <GhostButton onClick={() => navigate('/home')}>

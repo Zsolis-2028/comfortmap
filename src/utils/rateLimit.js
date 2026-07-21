@@ -1,28 +1,35 @@
 // rateLimit.js
-// Caps comfort-map generations per user per day using localStorage.
-// "Day" is the user's local calendar day, so the count resets at their midnight.
+// Client-side soft cap on comfort-map generations, for instant UX ("X left")
+// and to block obviously over-limit calls before they hit the server.
+// The real, un-bypassable wall is enforced server-side (api/comfort.js +
+// the Supabase check_and_record_map_generation function). This is the friendly
+// front-end mirror of that.
+//
+// Counts per CALENDAR MONTH so it resets on the 1st, matching the plan tiers.
+// Free is intentionally generous during beta; tighten when billing launches.
 
 const STORAGE_KEY = 'cm_usage'
-export const DAILY_MAP_LIMIT = 4
+export const MONTHLY_MAP_LIMIT = 20
 
-function todayKey() {
-  return new Date().toDateString()
+function monthKey() {
+  const d = new Date()
+  return `${d.getFullYear()}-${d.getMonth() + 1}` // e.g. "2026-7"
 }
 
 function readUsage() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    if (stored && stored.date === todayKey()) return stored
+    if (stored && stored.month === monthKey()) return stored
   } catch {}
-  return { date: todayKey(), count: 0 }
+  return { month: monthKey(), count: 0 }
 }
 
 export function getRemainingMaps() {
-  return Math.max(0, DAILY_MAP_LIMIT - readUsage().count)
+  return Math.max(0, MONTHLY_MAP_LIMIT - readUsage().count)
 }
 
-export function hasReachedDailyLimit() {
-  return readUsage().count >= DAILY_MAP_LIMIT
+export function hasReachedMonthlyLimit() {
+  return readUsage().count >= MONTHLY_MAP_LIMIT
 }
 
 export function recordMapGenerated() {

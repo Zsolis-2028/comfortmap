@@ -10,7 +10,7 @@ import { RADIUS, BRAND_GRADIENT } from '../styles/colors'
 import { PrimaryButton } from '../components/Button'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
-import { getRemainingMaps, DAILY_MAP_LIMIT } from '../utils/rateLimit'
+import { getRemainingMaps, MONTHLY_MAP_LIMIT } from '../utils/rateLimit'
 
 const WELCOME_STORAGE_KEY = 'cm_welcome_seen'
 
@@ -236,7 +236,7 @@ export default function HomeScreen() {
           <div style={{ textAlign: 'center', fontSize: 12, color: COLORS.muted, marginTop: 10 }}>
             {plan !== 'free'
               ? '✨ Unlimited maps'
-              : `${getRemainingMaps()} of ${DAILY_MAP_LIMIT} free maps left today`}
+              : `${getRemainingMaps()} of ${MONTHLY_MAP_LIMIT} free maps left this month`}
           </div>
         </div>
 

@@ -4,17 +4,39 @@
 // API key never reaches the browser — this just calls our own backend.
 
 import { getText } from '../data/languages'
+import { supabase } from '../lib/supabaseClient'
 
 const API_URL = '/api/comfort'
+
+// Get the current user's Supabase access token so the server can identify them
+// for per-account monthly limits. If they have no session yet, sign in
+// anonymously (zero friction) so every device is still attributable. Best-effort
+// — any failure just means the request goes out without a token, and the server
+// falls back to not enforcing (fail-open).
+async function getAccessToken() {
+  try {
+    let { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      const { data } = await supabase.auth.signInAnonymously()
+      session = data?.session || null
+    }
+    return session?.access_token || null
+  } catch {
+    return null
+  }
+}
 
 // Main function to get a comfort map
 export const getComfortMap = async ({ userMessage, sensory, who, lang, conversationHistory = [], extraContext = '' }) => {
   const fullMessage = extraContext ? `${userMessage}\n\n${extraContext}` : userMessage
+  const headers = { 'Content-Type': 'application/json' }
+  const token = await getAccessToken()
+  if (token) headers.Authorization = `Bearer ${token}`
   let response
   try {
     response = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ userMessage: fullMessage, sensory, who, lang, conversationHistory }),
     })
   } catch {

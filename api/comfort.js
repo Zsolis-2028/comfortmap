@@ -272,6 +272,36 @@ async function readJsonBody(req, maxBytes) {
   return raw ? JSON.parse(raw) : {}
 }
 
+// Server-side monthly quota check. Calls a Supabase SECURITY DEFINER function
+// with the caller's own JWT, which reads their plan, counts this month's maps,
+// records one if they're under the limit, and reports the result.
+// FAIL-OPEN by design: if anything is missing or errors (no token, no env,
+// network/timeout, non-OK response), we return null and the caller proceeds —
+// this can never block a legitimate map generation.
+async function checkMonthlyLimit(req) {
+  const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const ANON = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  const auth = req.headers['authorization'] || req.headers['Authorization']
+  if (!SUPABASE_URL || !ANON || !auth) return null
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 4000)
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_and_record_map_generation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: ANON, Authorization: auth },
+      body: '{}',
+      signal: controller.signal,
+    })
+    if (!r.ok) return null
+    return await r.json()
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
 module.exports = async function handler(req, res) {
   const origin = req.headers.origin
 
@@ -291,7 +321,7 @@ module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', origin)
     res.setHeader('Vary', 'Origin')
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   }
 
   if (req.method === 'OPTIONS') {
@@ -385,6 +415,21 @@ module.exports = async function handler(req, res) {
         .filter((turn) => turn.content)
         .slice(-MAX_HISTORY_TURNS) // M2: only keep the most recent turns
     : []
+
+  // Monthly plan limit — only a brand-new map (no prior turns) consumes quota;
+  // follow-up questions in an existing conversation are free. Fail-open: a null
+  // result (misconfig / error) means "don't block".
+  if (conversationHistory.length === 0) {
+    const gate = await checkMonthlyLimit(req)
+    if (gate && gate.allowed === false) {
+      logEvent('limit_reached', req, { plan: gate.plan, used: gate.used, limit: gate.limit })
+      sendJson(res, 429, {
+        error: `You've used all ${gate.limit} comfort maps on your plan this month. Your limit resets at the start of next month.`,
+        limitReached: true,
+      })
+      return
+    }
+  }
 
   const systemPrompt = buildSystemPrompt({ sensory, who, lang })
   const messages = [...conversationHistory, { role: 'user', content: userMessage }]
