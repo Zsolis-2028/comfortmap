@@ -9,7 +9,7 @@
 // Free is intentionally generous during beta; tighten when billing launches.
 
 const STORAGE_KEY = 'cm_usage'
-export const MONTHLY_MAP_LIMIT = 20
+export const MONTHLY_MAP_LIMIT = 15
 
 function monthKey() {
   const d = new Date()
