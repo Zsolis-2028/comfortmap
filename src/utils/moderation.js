@@ -18,7 +18,8 @@ const BLOCKED = [
   'kike', 'tranny', 'dyke', 'coon',
   // sexual / vulgar
   'porn', 'nude', 'nudes', 'rape', 'cum', 'boner', 'horny', 'xxx', 'blowjob',
-  'handjob', 'dildo', 'jizz',
+  'handjob', 'dildo', 'jizz', 'dick', 'dicks', 'dickhead', 'twat', 'tits',
+  'titties', 'boobs', 'penis', 'vagina', 'ballsack', 'jackoff', 'jerkoff',
 ]
 
 const BLOCKED_SET = new Set(BLOCKED)
