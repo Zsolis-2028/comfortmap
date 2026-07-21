@@ -19,9 +19,23 @@ export async function ensureSignedIn() {
   return data.user
 }
 
-// Find an existing venue by name + city, or create it. Returns the venue id.
-export async function findOrCreateVenue({ name, category = 'other', city = 'San Antonio' }) {
+// Find an existing venue, or create it. Returns the venue id.
+// Dedup priority: a Google place_id is a canonical identity, so if we have one
+// we match on it first — that's what makes "Back Unturned" and "Back Unturned
+// Brewery" resolve to the SAME place. Falls back to a case-insensitive name
+// match for places typed in manually (no place_id).
+export async function findOrCreateVenue({ name, category = 'other', city = 'San Antonio', placeId = null, address = null }) {
   const cleanName = name.trim()
+
+  if (placeId) {
+    const { data: byPlace, error: pErr } = await supabase
+      .from('venues')
+      .select('id')
+      .eq('google_place_id', placeId)
+      .limit(1)
+    if (pErr) throw pErr
+    if (byPlace && byPlace.length) return byPlace[0].id
+  }
 
   const { data: found, error: findErr } = await supabase
     .from('venues')
@@ -34,7 +48,7 @@ export async function findOrCreateVenue({ name, category = 'other', city = 'San 
 
   const { data: created, error: createErr } = await supabase
     .from('venues')
-    .insert({ name: cleanName, category, city })
+    .insert({ name: cleanName, category, city, google_place_id: placeId, address })
     .select('id')
     .single()
   if (createErr) throw createErr
@@ -43,9 +57,9 @@ export async function findOrCreateVenue({ name, category = 'other', city = 'San 
 
 // ratings: { noise: 1..3, crowds: 1..3, ... } — only the attributes the
 // visitor actually tapped. Writes one observation row per rated attribute.
-export async function submitReport({ venueName, category, city, ratings, note }) {
+export async function submitReport({ venueName, category, city, ratings, note, placeId = null, address = null }) {
   const user = await ensureSignedIn()
-  const venueId = await findOrCreateVenue({ name: venueName, category, city })
+  const venueId = await findOrCreateVenue({ name: venueName, category, city, placeId, address })
 
   const rows = Object.entries(ratings)
     .filter(([, value]) => value != null)

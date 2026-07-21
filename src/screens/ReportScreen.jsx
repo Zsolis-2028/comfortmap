@@ -3,7 +3,7 @@
 // A visitor taps what a place was like; each tap becomes a Verified
 // observation in the database. This is how the honest map fills up.
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { RADIUS } from '../styles/colors'
@@ -12,6 +12,7 @@ import Screen from '../components/Screen'
 import { PrimaryButton } from '../components/Button'
 import { submitReport } from '../lib/reports'
 import { uploadVenuePhoto } from '../lib/photos'
+import { searchPlaces } from '../lib/places'
 import { ATTRIBUTES } from '../lib/attributes'
 import { containsProfanity, PROFANITY_MESSAGE } from '../utils/moderation'
 
@@ -21,12 +22,42 @@ export default function ReportScreen() {
   const { COLORS } = useUser()
 
   const [venueName, setVenueName] = useState(location.state?.venueName || '')
+  const [placeId, setPlaceId] = useState(null)     // canonical Google place id
+  const [address, setAddress] = useState('')
+  const [suggestions, setSuggestions] = useState([])
   const [ratings, setRatings] = useState({})
   const [note, setNote] = useState('')
   const [photo, setPhoto] = useState(null)         // selected File
   const [photoPreview, setPhotoPreview] = useState('') // object URL for thumbnail
   const [status, setStatus] = useState('idle') // idle | saving | done | error
   const [errorMsg, setErrorMsg] = useState('')
+
+  // Debounced place search — only while no place is selected. If Places isn't
+  // configured, searchPlaces returns [] and the field just works as plain text.
+  useEffect(() => {
+    if (placeId) return
+    const q = venueName.trim()
+    if (q.length < 3) { setSuggestions([]); return }
+    let active = true
+    const t = setTimeout(async () => {
+      const results = await searchPlaces(q)
+      if (active) setSuggestions(results)
+    }, 300)
+    return () => { active = false; clearTimeout(t) }
+  }, [venueName, placeId])
+
+  const onVenueNameChange = (v) => {
+    setVenueName(v)
+    // Typing means they're no longer bound to a previously picked place.
+    if (placeId) { setPlaceId(null); setAddress('') }
+  }
+
+  const pickSuggestion = (s) => {
+    setVenueName(s.name)
+    setPlaceId(s.placeId)
+    setAddress(s.address || '')
+    setSuggestions([])
+  }
 
   const setRating = (key, value) =>
     setRatings(prev => ({ ...prev, [key]: prev[key] === value ? undefined : value }))
@@ -79,6 +110,8 @@ export default function ReportScreen() {
         city: location.state?.city || 'San Antonio',
         ratings: clean,
         note,
+        placeId,
+        address,
       })
 
       // Optional photo — best-effort. It's saved as PENDING and won't show to
@@ -129,24 +162,66 @@ export default function ReportScreen() {
           Just visited? Tap what it was like — takes about 10 seconds. Skip anything you're not sure about.
         </p>
 
-        <input
-          value={venueName}
-          onChange={e => setVenueName(e.target.value)}
-          placeholder="Place name (e.g. H-E-B on Bandera Rd)"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            borderRadius: RADIUS.lg,
-            border: `1.5px solid ${COLORS.border}`,
-            padding: '14px 16px',
-            fontSize: 15,
-            fontFamily: 'inherit',
-            outline: 'none',
-            background: COLORS.white,
-            color: COLORS.text,
-            marginBottom: 20,
-          }}
-        />
+        <div style={{ position: 'relative', marginBottom: 20 }}>
+          <input
+            value={venueName}
+            onChange={e => onVenueNameChange(e.target.value)}
+            placeholder="Start typing a place… (e.g. Armadillo Burgers)"
+            autoComplete="off"
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              borderRadius: RADIUS.lg,
+              border: `1.5px solid ${placeId ? COLORS.mint : COLORS.border}`,
+              padding: '14px 16px',
+              fontSize: 15,
+              fontFamily: 'inherit',
+              outline: 'none',
+              background: COLORS.white,
+              color: COLORS.text,
+            }}
+          />
+          {placeId && address && (
+            <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 6 }}>
+              ✓ {address}
+            </div>
+          )}
+          {suggestions.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              zIndex: 20,
+              marginTop: 4,
+              background: COLORS.white,
+              border: `1.5px solid ${COLORS.border}`,
+              borderRadius: RADIUS.lg,
+              overflow: 'hidden',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
+            }}>
+              {suggestions.map((s, i) => (
+                <button
+                  key={s.placeId}
+                  onClick={() => pickSuggestion(s)}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    background: COLORS.white,
+                    border: 'none',
+                    borderTop: i > 0 ? `1px solid ${COLORS.border}` : 'none',
+                    padding: '12px 14px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.forest }}>{s.name}</div>
+                  {s.address && <div style={{ fontSize: 12, color: COLORS.muted, marginTop: 2 }}>{s.address}</div>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {ATTRIBUTES.map(attr => (
           <div key={attr.key} style={{ marginBottom: 18 }}>
