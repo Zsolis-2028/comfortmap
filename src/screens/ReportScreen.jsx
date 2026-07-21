@@ -11,7 +11,9 @@ import Header from '../components/Header'
 import Screen from '../components/Screen'
 import { PrimaryButton } from '../components/Button'
 import { submitReport } from '../lib/reports'
+import { uploadVenuePhoto } from '../lib/photos'
 import { ATTRIBUTES } from '../lib/attributes'
+import { containsProfanity, PROFANITY_MESSAGE } from '../utils/moderation'
 
 export default function ReportScreen() {
   const navigate = useNavigate()
@@ -21,30 +23,75 @@ export default function ReportScreen() {
   const [venueName, setVenueName] = useState(location.state?.venueName || '')
   const [ratings, setRatings] = useState({})
   const [note, setNote] = useState('')
+  const [photo, setPhoto] = useState(null)         // selected File
+  const [photoPreview, setPhotoPreview] = useState('') // object URL for thumbnail
   const [status, setStatus] = useState('idle') // idle | saving | done | error
   const [errorMsg, setErrorMsg] = useState('')
 
   const setRating = (key, value) =>
     setRatings(prev => ({ ...prev, [key]: prev[key] === value ? undefined : value }))
 
+  const onPickPhoto = (e) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Please choose an image file (JPG or PNG).')
+      setStatus('error')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) { // 8 MB cap
+      setErrorMsg('That image is a bit large — please choose one under 8 MB.')
+      setStatus('error')
+      return
+    }
+    setStatus('idle')
+    setErrorMsg('')
+    setPhoto(file)
+    setPhotoPreview(URL.createObjectURL(file))
+  }
+
+  const clearPhoto = () => {
+    setPhoto(null)
+    setPhotoPreview('')
+  }
+
   const ratedCount = Object.values(ratings).filter(v => v != null).length
   const canSubmit = venueName.trim().length > 0 &&
-    (ratedCount > 0 || note.trim().length > 0) && status !== 'saving'
+    (ratedCount > 0 || note.trim().length > 0 || photo) && status !== 'saving'
 
   const handleSubmit = async () => {
+    // Keep it clean for families: block profanity/slurs in the name or note.
+    if (containsProfanity(venueName) || containsProfanity(note)) {
+      setStatus('error')
+      setErrorMsg(PROFANITY_MESSAGE)
+      return
+    }
+
     setStatus('saving')
     setErrorMsg('')
     try {
       const clean = Object.fromEntries(
         Object.entries(ratings).filter(([, v]) => v != null)
       )
-      await submitReport({
+      const { venueId } = await submitReport({
         venueName,
         category: location.state?.category || 'other',
         city: location.state?.city || 'San Antonio',
         ratings: clean,
         note,
       })
+
+      // Optional photo — best-effort. It's saved as PENDING and won't show to
+      // anyone until it's approved, so nothing inappropriate can slip through.
+      // If the upload fails, the report itself is still saved (fail-open).
+      if (photo && venueId) {
+        try {
+          await uploadVenuePhoto({ venueId, file: photo })
+        } catch (photoErr) {
+          console.warn('Photo upload failed (report still saved):', photoErr)
+        }
+      }
+
       setStatus('done')
     } catch (err) {
       setStatus('error')
@@ -162,6 +209,47 @@ export default function ReportScreen() {
           />
           <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 6, lineHeight: 1.5 }}>
             The specifics a rating can't capture — the exact thing someone with that sensitivity would want to know.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.forest, marginBottom: 8 }}>
+            Add a photo <span style={{ fontWeight: 400, color: COLORS.muted }}>(optional)</span>
+          </div>
+
+          {photoPreview ? (
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <img
+                src={photoPreview}
+                alt="Selected"
+                style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: RADIUS.lg, border: `1.5px solid ${COLORS.border}` }}
+              />
+              <button
+                onClick={clearPhoto}
+                aria-label="Remove photo"
+                style={{
+                  position: 'absolute', top: -8, right: -8, width: 26, height: 26,
+                  borderRadius: '50%', border: 'none', background: COLORS.forest, color: '#fff',
+                  fontSize: 15, fontWeight: 700, cursor: 'pointer', lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <label style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              border: `1.5px dashed ${COLORS.border}`, borderRadius: RADIUS.lg,
+              padding: '16px', fontSize: 14, fontWeight: 600, color: COLORS.forest,
+              background: COLORS.white, cursor: 'pointer',
+            }}>
+              📸 Choose a photo
+              <input type="file" accept="image/*" onChange={onPickPhoto} style={{ display: 'none' }} />
+            </label>
+          )}
+
+          <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 6, lineHeight: 1.5 }}>
+            A real photo helps the next visitor know what to expect. Please keep it appropriate — photos are reviewed before they appear.
           </div>
         </div>
 

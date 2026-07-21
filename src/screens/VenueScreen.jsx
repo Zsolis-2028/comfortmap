@@ -11,6 +11,7 @@ import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 import { PrimaryButton, GhostButton } from '../components/Button'
 import CommunityReports from '../components/CommunityReports'
+import VenuePhotos from '../components/VenuePhotos'
 
 export default function VenueScreen() {
   const navigate = useNavigate()
@@ -26,6 +27,7 @@ export default function VenueScreen() {
     <div style={{ minHeight: '100vh', background: COLORS.soft }}>
       <Header title={venueName || 'Place'} onBack={() => navigate(-1)} />
       <Screen>
+        <VenuePhotos venueName={venueName} />
         <CommunityReports venueName={venueName} />
 
         <div style={{ marginTop: 20 }}>

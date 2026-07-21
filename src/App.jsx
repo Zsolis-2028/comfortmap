@@ -41,6 +41,7 @@ const ReportScreen       = lazyWithRetry(() => import('./screens/ReportScreen'))
 const AuthScreen         = lazyWithRetry(() => import('./screens/AuthScreen'))
 const ExploreScreen      = lazyWithRetry(() => import('./screens/ExploreScreen'))
 const VenueScreen        = lazyWithRetry(() => import('./screens/VenueScreen'))
+const VenuePreviewScreen = lazyWithRetry(() => import('./screens/VenuePreviewScreen'))
 const ResultScreen       = lazyWithRetry(() => import('./screens/ResultScreen'))
 const SavedScreen        = lazyWithRetry(() => import('./screens/SavedScreen'))
 const SettingsScreen     = lazyWithRetry(() => import('./screens/SettingsScreen'))
@@ -74,6 +75,7 @@ export default function App() {
             <Route path="/auth"                  element={<AuthScreen />} />
             <Route path="/explore"               element={<ExploreScreen />} />
             <Route path="/venue"                 element={<VenueScreen />} />
+            <Route path="/preview"               element={<VenuePreviewScreen />} />
             <Route path="/result"                element={<ResultScreen />} />
             <Route path="/saved"                 element={<SavedScreen />} />
             <Route path="/settings"              element={<SettingsScreen />} />
