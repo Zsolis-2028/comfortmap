@@ -33,9 +33,14 @@ module.exports = async function handler(req, res) {
     sendJson(res, 403, { error: 'Origin not allowed.' })
     return
   }
-  res.setHeader('Access-Control-Allow-Origin', origin)
-  res.setHeader('Vary', 'Origin')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  // Only set CORS headers when an Origin is actually present — setting a header
+  // to `undefined` crashes the serverless function (which is what was happening
+  // on every same-origin request, since those don't send an Origin header).
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  }
 
   if (req.method === 'OPTIONS') { res.statusCode = 204; res.end(); return }
   if (req.method !== 'GET') { sendJson(res, 405, { error: 'Method not allowed' }); return }
