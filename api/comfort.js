@@ -6,7 +6,7 @@
 // into the Vite dev server (see vite.config.js) for local development.
 // Deploy trigger: 2026-07-10
 
-const MODEL = 'claude-sonnet-4-6'
+const MODEL = 'claude-sonnet-5'
 const MAX_TOKENS = 1500
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
 const ANTHROPIC_TIMEOUT_MS = 22000 // per attempt
