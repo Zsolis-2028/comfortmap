@@ -160,8 +160,8 @@ export default function SettingsScreen() {
     founder: 'Founder · unlimited',
     pro: 'Pro',
     family: 'Family',
-    free: 'Free · 4 maps/day',
-  })[plan] || 'Free · 4 maps/day'
+    free: 'Free · 15 maps/month',
+  })[plan] || 'Free · 15 maps/month'
 
   const handleSignOut = async () => {
     try { await signOut() } catch {}
@@ -207,6 +207,19 @@ export default function SettingsScreen() {
               />
             )}
           </SettingsGroup>
+
+          {plan === 'founder' && (
+            <SettingsGroup title="Founder" COLORS={COLORS}>
+              <SettingsRow
+                emoji="🖼️"
+                label="Review photos"
+                value=""
+                onClick={() => navigate('/settings/photos')}
+                last
+                COLORS={COLORS}
+              />
+            </SettingsGroup>
+          )}
 
           <SettingsGroup title={t.profileSection || 'Profile'} COLORS={COLORS}>
             <SettingsRow

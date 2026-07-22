@@ -49,3 +49,38 @@ export async function getVenuePhotos({ venueId }) {
   if (error) throw error
   return data || []
 }
+
+// ---- Founder moderation queue ----
+
+// All pending (unapproved) photos, newest place name attached, for review.
+export async function getPendingPhotos() {
+  const { data, error } = await supabase
+    .from('venue_photos')
+    .select('id, url, storage_path, created_at, venues(name)')
+    .eq('approved', false)
+    .order('created_at', { ascending: true })
+    .limit(50)
+  if (error) throw error
+  return (data || []).map((p) => ({
+    id: p.id,
+    url: p.url,
+    storagePath: p.storage_path,
+    createdAt: p.created_at,
+    venueName: (p.venues && p.venues.name) || 'Unknown place',
+  }))
+}
+
+// Approve a photo so it shows to everyone.
+export async function approvePhoto(id) {
+  const { error } = await supabase.from('venue_photos').update({ approved: true }).eq('id', id)
+  if (error) throw error
+}
+
+// Reject a photo: delete the row and remove the stored image.
+export async function rejectPhoto(id, storagePath) {
+  const { error } = await supabase.from('venue_photos').delete().eq('id', id)
+  if (error) throw error
+  if (storagePath) {
+    try { await supabase.storage.from(BUCKET).remove([storagePath]) } catch {}
+  }
+}
