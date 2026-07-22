@@ -244,12 +244,12 @@ export default function HomeScreen() {
         {sensory.length > 0 && (
           <div style={{
             marginTop: 16,
-            background: COLORS.warn,
-            border: `1px solid ${COLORS.warnBorder}`,
+            background: COLORS.pale,
+            border: `1px solid ${COLORS.mint}`,
             borderRadius: RADIUS.md,
             padding: '10px 14px',
           }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.warnText, marginBottom: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.forest, marginBottom: 6 }}>
               {t.sensoryActive || '✓ Sensory profile active'}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -261,8 +261,8 @@ export default function HomeScreen() {
                     background: COLORS.white,
                     borderRadius: '999px',
                     padding: '3px 10px',
-                    color: COLORS.warnText,
-                    border: `1px solid ${COLORS.warnBorder}`,
+                    color: COLORS.forest,
+                    border: `1px solid ${COLORS.border}`,
                   }}>
                     {opt.emoji} {getSensoryLabel(opt, lang)}
                   </span>
