@@ -9,7 +9,11 @@
 const MODEL = 'claude-sonnet-4-6'
 const MAX_TOKENS = 1500
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
-const ANTHROPIC_TIMEOUT_MS = 30000
+const ANTHROPIC_TIMEOUT_MS = 22000 // per attempt
+const MAX_ATTEMPTS = 2             // one automatic retry on a transient failure
+const RETRY_BACKOFF_MS = 600
+const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504, 529])
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 const MAX_BODY_BYTES = 10 * 1024 // 10kb
 const MAX_FIELD_LENGTH = 2000
@@ -439,47 +443,60 @@ module.exports = async function handler(req, res) {
   const systemPrompt = buildSystemPrompt({ sensory, who, lang })
   const messages = [...conversationHistory, { role: 'user', content: userMessage }]
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), ANTHROPIC_TIMEOUT_MS)
+  const requestBody = JSON.stringify({ model: MODEL, max_tokens: MAX_TOKENS, system: systemPrompt, messages })
 
-  try {
-    const upstream = await fetch(ANTHROPIC_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        system: systemPrompt,
-        messages,
-      }),
-      signal: controller.signal,
-    })
+  // Call Anthropic with one automatic retry on a transient failure — a timeout,
+  // a network blip, or a retryable 429/5xx. This quietly smooths over the brief
+  // upstream hiccups that would otherwise show the user an error.
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), ANTHROPIC_TIMEOUT_MS)
+    try {
+      const upstream = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: requestBody,
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
 
-    const data = await upstream.json()
+      const data = await upstream.json()
 
-    if (!upstream.ok) {
-      // L1: log the upstream detail server-side only; never echo it to the
-      // client, which could leak internal error specifics.
-      logEvent('upstream_error', req, { status: upstream.status, detail: data.error?.message || null })
-      sendJson(res, upstream.status, { error: 'Something went wrong. Please try again.' })
+      if (!upstream.ok) {
+        if (RETRYABLE_STATUS.has(upstream.status) && attempt < MAX_ATTEMPTS) {
+          logEvent('upstream_retry', req, { status: upstream.status, attempt })
+          await sleep(RETRY_BACKOFF_MS)
+          continue
+        }
+        // L1: log the detail server-side only; never echo it to the client.
+        logEvent('upstream_error', req, { status: upstream.status, detail: data.error?.message || null, attempt })
+        sendJson(res, upstream.status, { error: 'Something went wrong. Please try again.' })
+        return
+      }
+
+      const text = (data.content || []).map((block) => block.text || '').join('\n')
+      sendJson(res, 200, { text })
+      return
+    } catch (err) {
+      clearTimeout(timeoutId)
+      const isTimeout = err.name === 'AbortError'
+      if (attempt < MAX_ATTEMPTS) {
+        logEvent('upstream_retry', req, { kind: isTimeout ? 'timeout' : 'network', attempt })
+        await sleep(RETRY_BACKOFF_MS)
+        continue
+      }
+      if (isTimeout) {
+        logEvent('upstream_timeout', req)
+        sendJson(res, 504, { error: 'The AI service took too long to respond. Please try again.' })
+        return
+      }
+      logEvent('unexpected_error', req, { message: err.message })
+      sendJson(res, 502, { error: 'Failed to reach the AI service.' })
       return
     }
-
-    const text = (data.content || []).map((block) => block.text || '').join('\n')
-    sendJson(res, 200, { text })
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      logEvent('upstream_timeout', req)
-      sendJson(res, 504, { error: 'The AI service took too long to respond. Please try again.' })
-      return
-    }
-    logEvent('unexpected_error', req, { message: err.message })
-    sendJson(res, 502, { error: 'Failed to reach the AI service.' })
-  } finally {
-    clearTimeout(timeoutId)
   }
 }
