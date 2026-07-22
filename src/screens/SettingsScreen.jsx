@@ -11,6 +11,7 @@ import Header from '../components/Header'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 import { signOut } from '../lib/auth'
+import { startProCheckout } from '../lib/billing'
 
 const TEXT_SIZE_OPTIONS = [
   { value: 'small',  labelKey: 'textSizeSmall',  fallback: 'Small' },
@@ -163,9 +164,18 @@ export default function SettingsScreen() {
     free: 'Free · 15 maps/month',
   })[plan] || 'Free · 15 maps/month'
 
+  const [upgradeBusy, setUpgradeBusy] = useState(false)
+  const [upgradeError, setUpgradeError] = useState('')
+
   const handleSignOut = async () => {
     try { await signOut() } catch {}
     navigate('/home')
+  }
+
+  const handleUpgrade = async () => {
+    setUpgradeBusy(true); setUpgradeError('')
+    try { await startProCheckout() } // redirects to Stripe on success
+    catch (e) { setUpgradeError(e.message || 'Could not start checkout.'); setUpgradeBusy(false) }
   }
 
   const langLabel = LANGUAGES.find(l => l.code === lang)?.label || 'English'
@@ -207,6 +217,24 @@ export default function SettingsScreen() {
               />
             )}
           </SettingsGroup>
+
+          {signedIn && plan === 'free' && (
+            <SettingsGroup title="ComfortMap Pro" COLORS={COLORS}>
+              <SettingsRow
+                emoji="✨"
+                label={upgradeBusy ? 'Opening checkout…' : 'Upgrade to Pro — $5.99/mo'}
+                value=""
+                onClick={upgradeBusy ? undefined : handleUpgrade}
+                last
+                COLORS={COLORS}
+              />
+            </SettingsGroup>
+          )}
+          {upgradeError && (
+            <div style={{ background: COLORS.error, color: COLORS.errorText, borderRadius: RADIUS.md, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
+              {upgradeError}
+            </div>
+          )}
 
           {plan === 'founder' && (
             <SettingsGroup title="Founder" COLORS={COLORS}>
