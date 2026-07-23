@@ -49,6 +49,10 @@ const SettingsScreen     = lazyWithRetry(() => import('./screens/SettingsScreen'
 const AboutScreen        = lazyWithRetry(() => import('./screens/AboutScreen'))
 const PrivacyScreen      = lazyWithRetry(() => import('./screens/PrivacyScreen'))
 const TermsScreen        = lazyWithRetry(() => import('./screens/TermsScreen'))
+const RefundScreen       = lazyWithRetry(() => import('./screens/RefundScreen'))
+const AiDisclosureScreen = lazyWithRetry(() => import('./screens/AiDisclosureScreen'))
+const DataRetentionScreen = lazyWithRetry(() => import('./screens/DataRetentionScreen'))
+const AccessibilityStatementScreen = lazyWithRetry(() => import('./screens/AccessibilityStatementScreen'))
 const NotFoundScreen     = lazyWithRetry(() => import('./screens/NotFoundScreen'))
 
 export default function App() {
@@ -84,6 +88,10 @@ export default function App() {
             <Route path="/settings/about"        element={<AboutScreen />} />
             <Route path="/settings/privacy"      element={<PrivacyScreen />} />
             <Route path="/terms"                 element={<TermsScreen />} />
+            <Route path="/settings/refund"       element={<RefundScreen />} />
+            <Route path="/settings/ai"           element={<AiDisclosureScreen />} />
+            <Route path="/settings/data"         element={<DataRetentionScreen />} />
+            <Route path="/settings/accessibility" element={<AccessibilityStatementScreen />} />
 
             {/* Fallback — custom 404 */}
             <Route path="*"                      element={<NotFoundScreen />} />
