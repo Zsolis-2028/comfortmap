@@ -21,7 +21,7 @@ export default function AuthScreen() {
   const [status, setStatus] = useState('idle') // idle | working | needsConfirm | error
   const [message, setMessage] = useState('')
 
-  const canSubmit = email.trim().length > 3 && password.length >= 6 && status !== 'working'
+  const canSubmit = email.trim().length > 3 && password.length >= 8 && status !== 'working'
 
   const inputStyle = {
     width: '100%',
@@ -89,7 +89,7 @@ export default function AuthScreen() {
           autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
           value={password}
           onChange={e => setPassword(e.target.value)}
-          placeholder="Password (6+ characters)"
+          placeholder="Password (8+ characters)"
           style={inputStyle}
           onKeyDown={e => { if (e.key === 'Enter' && canSubmit) handleSubmit() }}
         />

@@ -18,8 +18,16 @@ export function onAuthChange(callback) {
 }
 
 // Create a new account with email + password.
+// emailRedirectTo points the confirmation link back to the site the user
+// actually signed up on (comfortmap.app in production), instead of falling back
+// to the project's Site URL.
 export async function signUp(email, password) {
-  const { data, error } = await supabase.auth.signUp({ email, password })
+  const emailRedirectTo = typeof window !== 'undefined' ? window.location.origin : undefined
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: emailRedirectTo ? { emailRedirectTo } : undefined,
+  })
   if (error) throw error
   return data
 }
