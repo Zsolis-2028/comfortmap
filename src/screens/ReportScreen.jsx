@@ -13,6 +13,7 @@ import { PrimaryButton } from '../components/Button'
 import { submitReport } from '../lib/reports'
 import { uploadVenuePhoto } from '../lib/photos'
 import { searchPlaces } from '../lib/places'
+import { track } from '@vercel/analytics'
 import { ATTRIBUTES } from '../lib/attributes'
 import { containsProfanity, PROFANITY_MESSAGE } from '../utils/moderation'
 
@@ -125,6 +126,7 @@ export default function ReportScreen() {
         }
       }
 
+      track('report_submitted', { hasPhoto: Boolean(photo) })
       setStatus('done')
     } catch (err) {
       setStatus('error')

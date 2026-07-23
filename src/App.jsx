@@ -4,6 +4,7 @@
 
 import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { UserProvider } from './context/UserContext'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import ScrollToTop from './components/ScrollToTop'
@@ -101,6 +102,7 @@ export default function App() {
         <OfflineScreen />
       )}
       <CookieConsent />
+      <Analytics />
     </UserProvider>
   )
 }

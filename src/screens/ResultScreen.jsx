@@ -5,6 +5,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import { track } from '@vercel/analytics'
 import { getComfortMap, askFollowUp } from '../utils/claude'
 import { hasReachedMonthlyLimit, recordMapGenerated } from '../utils/rateLimit'
 import { getText } from '../data/languages'
@@ -264,6 +265,7 @@ export default function ResultScreen() {
       setHasVerified(Boolean(extraContext))
       const result = await getComfortMap({ userMessage: prompt, sensory, who, lang, extraContext })
       if (!unlimited) recordMapGenerated()
+      track('map_generated', { hasVerified: Boolean(extraContext) })
       setResponse(result)
       setHistory([
         { role: 'user', content: prompt },
