@@ -33,6 +33,7 @@ function lazyWithRetry(importer) {
 // Screens — lazy-loaded so each route ships its own chunk instead of
 // bloating the initial bundle.
 const SplashScreen      = lazyWithRetry(() => import('./screens/SplashScreen'))
+const LandingScreen     = lazyWithRetry(() => import('./screens/LandingScreen'))
 const OnboardingLang     = lazyWithRetry(() => import('./screens/OnboardingLang'))
 const OnboardingWho      = lazyWithRetry(() => import('./screens/OnboardingWho'))
 const OnboardingSensory  = lazyWithRetry(() => import('./screens/OnboardingSensory'))
@@ -68,6 +69,7 @@ export default function App() {
           <Routes>
             {/* Splash */}
             <Route path="/"                      element={<SplashScreen />} />
+            <Route path="/welcome"               element={<LandingScreen />} />
 
             {/* Onboarding */}
             <Route path="/onboarding/language"   element={<OnboardingLang />} />
