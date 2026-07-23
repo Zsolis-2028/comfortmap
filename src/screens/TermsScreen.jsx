@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { getText } from '../data/languages'
 import { RADIUS } from '../styles/colors'
-import { MONTHLY_MAP_LIMIT } from '../utils/rateLimit'
 import Header from '../components/Header'
 import Screen from '../components/Screen'
 
@@ -61,8 +60,8 @@ export default function TermsScreen() {
 
         <Section title="2. Free to use, with a monthly limit" COLORS={COLORS}>
           ComfortMap is free to use. To keep the service available and sustainable for everyone,
-          each person is limited to {MONTHLY_MAP_LIMIT} new comfort maps per month. This limit resets
-          at the start of each month. Asking follow-up questions about a map you've already generated
+          each person can create a limited number of new comfort maps per month, which resets at
+          the start of each month. Asking follow-up questions about a map you've already generated
           doesn't count against this limit. We may adjust this limit over time as the service
           grows.
         </Section>

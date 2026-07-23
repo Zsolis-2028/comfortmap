@@ -13,6 +13,10 @@ import NavBar from '../components/NavBar'
 import { signOut } from '../lib/auth'
 import { startProCheckout } from '../lib/billing'
 
+// Billing is OFF during the free beta. To turn on paid upgrades when you go
+// live, set VITE_BILLING_ENABLED=true in Vercel and redeploy.
+const BILLING_ENABLED = import.meta.env.VITE_BILLING_ENABLED === 'true'
+
 const TEXT_SIZE_OPTIONS = [
   { value: 'small',  labelKey: 'textSizeSmall',  fallback: 'Small' },
   { value: 'medium', labelKey: 'textSizeMedium', fallback: 'Medium' },
@@ -161,8 +165,8 @@ export default function SettingsScreen() {
     founder: 'Founder · unlimited',
     pro: 'Pro',
     family: 'Family',
-    free: 'Free · 15 maps/month',
-  })[plan] || 'Free · 15 maps/month'
+    free: 'Free',
+  })[plan] || 'Free'
 
   const [upgradeBusy, setUpgradeBusy] = useState(false)
   const [upgradeError, setUpgradeError] = useState('')
@@ -218,7 +222,7 @@ export default function SettingsScreen() {
             )}
           </SettingsGroup>
 
-          {signedIn && plan === 'free' && (
+          {BILLING_ENABLED && signedIn && plan === 'free' && (
             <SettingsGroup title="ComfortMap Pro" COLORS={COLORS}>
               <SettingsRow
                 emoji="✨"
