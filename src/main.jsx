@@ -13,6 +13,17 @@ Sentry.init({
   tracesSampleRate: 1.0,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
+  // Drop stale-deploy chunk-load errors: the app already auto-recovers from
+  // these (App.jsx lazyWithRetry + vite:preloadError + the ErrorBoundary), so
+  // they're self-healing noise, not something to act on. Keeps Sentry meaningful.
+  beforeSend(event, hint) {
+    const err = hint && hint.originalException
+    const msg = (err && err.message) || (event && event.message) || ''
+    if (/dynamically imported module|module script failed|importing a module/i.test(String(msg))) {
+      return null
+    }
+    return event
+  },
 })
 
 // Vite fires this when a module preload fails — almost always a stale page
