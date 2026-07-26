@@ -11,6 +11,7 @@ import { PrimaryButton } from '../components/Button'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 import OnboardingTour from '../components/OnboardingTour'
+import InstallPrompt from '../components/InstallPrompt'
 
 const WELCOME_STORAGE_KEY = 'cm_welcome_seen'
 
@@ -96,6 +97,7 @@ export default function HomeScreen() {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       {showWelcome && <OnboardingTour onDone={dismissWelcome} />}
+      {!showWelcome && <InstallPrompt />}
       <Screen>
         {/* Top bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 0 18px' }}>
