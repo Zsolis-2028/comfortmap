@@ -12,6 +12,7 @@ import Screen from '../components/Screen'
 import { PrimaryButton } from '../components/Button'
 import { submitReport } from '../lib/reports'
 import { uploadVenuePhoto } from '../lib/photos'
+import { uploadVenueVideo } from '../lib/videos'
 import { searchPlaces } from '../lib/places'
 import { track } from '@vercel/analytics'
 import { ATTRIBUTES } from '../lib/attributes'
@@ -30,6 +31,8 @@ export default function ReportScreen() {
   const [note, setNote] = useState('')
   const [photo, setPhoto] = useState(null)         // selected File
   const [photoPreview, setPhotoPreview] = useState('') // object URL for thumbnail
+  const [video, setVideo] = useState(null)         // selected video File
+  const [videoPreview, setVideoPreview] = useState('') // object URL for the clip
   const [status, setStatus] = useState('idle') // idle | saving | done | error
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -87,9 +90,51 @@ export default function ReportScreen() {
     setPhotoPreview('')
   }
 
+  const onPickVideo = (e) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    if (!file.type.startsWith('video/')) {
+      setErrorMsg('Please choose a video file (MP4 or MOV).')
+      setStatus('error')
+      return
+    }
+    if (file.size > 50 * 1024 * 1024) { // 50 MB cap
+      setErrorMsg('That video is a bit large — please keep it under 50 MB.')
+      setStatus('error')
+      return
+    }
+    // Check length (≤ 30s) before accepting, so clips stay short and cheap to host.
+    const url = URL.createObjectURL(file)
+    const probe = document.createElement('video')
+    probe.preload = 'metadata'
+    probe.onloadedmetadata = () => {
+      if (probe.duration && probe.duration > 31) {
+        URL.revokeObjectURL(url)
+        setErrorMsg('Please keep the clip under 30 seconds.')
+        setStatus('error')
+        return
+      }
+      setStatus('idle')
+      setErrorMsg('')
+      setVideo(file)
+      setVideoPreview(url)
+    }
+    probe.onerror = () => {
+      URL.revokeObjectURL(url)
+      setErrorMsg("Couldn't read that video — please try a different file.")
+      setStatus('error')
+    }
+    probe.src = url
+  }
+
+  const clearVideo = () => {
+    setVideo(null)
+    setVideoPreview('')
+  }
+
   const ratedCount = Object.values(ratings).filter(v => v != null).length
   const canSubmit = venueName.trim().length > 0 &&
-    (ratedCount > 0 || note.trim().length > 0 || photo) && status !== 'saving'
+    (ratedCount > 0 || note.trim().length > 0 || photo || video) && status !== 'saving'
 
   const handleSubmit = async () => {
     // Keep it clean for families: block profanity/slurs in the name or note.
@@ -126,7 +171,16 @@ export default function ReportScreen() {
         }
       }
 
-      track('report_submitted', { hasPhoto: Boolean(photo) })
+      // Optional short video — same best-effort, pending-review path as photos.
+      if (video && venueId) {
+        try {
+          await uploadVenueVideo({ venueId, file: video })
+        } catch (videoErr) {
+          console.warn('Video upload failed (report still saved):', videoErr)
+        }
+      }
+
+      track('report_submitted', { hasPhoto: Boolean(photo), hasVideo: Boolean(video) })
       setStatus('done')
     } catch (err) {
       setStatus('error')
@@ -372,6 +426,49 @@ export default function ReportScreen() {
 
           <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 6, lineHeight: 1.5 }}>
             A real photo helps the next visitor know what to expect. Please keep it appropriate — photos are reviewed before they appear.
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.forest, marginBottom: 8 }}>
+            Add a short video <span style={{ fontWeight: 400, color: COLORS.muted }}>(optional)</span>
+          </div>
+
+          {videoPreview ? (
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <video
+                src={videoPreview}
+                controls
+                playsInline
+                preload="metadata"
+                style={{ width: 200, maxHeight: 240, borderRadius: RADIUS.lg, border: `1.5px solid ${COLORS.border}`, background: '#000' }}
+              />
+              <button
+                onClick={clearVideo}
+                aria-label="Remove video"
+                style={{
+                  position: 'absolute', top: -8, right: -8, width: 26, height: 26,
+                  borderRadius: '50%', border: 'none', background: COLORS.forest, color: '#fff',
+                  fontSize: 15, fontWeight: 700, cursor: 'pointer', lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <label style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              border: `1.5px dashed ${COLORS.border}`, borderRadius: RADIUS.lg,
+              padding: '16px', fontSize: 14, fontWeight: 600, color: COLORS.forest,
+              background: COLORS.white, cursor: 'pointer',
+            }}>
+              🎬 Choose a short video
+              <input type="file" accept="video/*" onChange={onPickVideo} style={{ display: 'none' }} />
+            </label>
+          )}
+
+          <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 6, lineHeight: 1.5 }}>
+            Up to 30 seconds. A quick clip of the entrance, the noise, or the vibe helps the next visitor. Reviewed before it appears.
           </div>
         </div>
 

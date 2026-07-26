@@ -11,6 +11,7 @@ import Header from '../components/Header'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 import { getPendingPhotos, approvePhoto, rejectPhoto } from '../lib/photos'
+import { getPendingVideos, approveVideo, rejectVideo } from '../lib/videos'
 
 export default function PhotoReviewScreen() {
   const navigate = useNavigate()
@@ -24,9 +25,16 @@ export default function PhotoReviewScreen() {
   useEffect(() => {
     if (!isFounder) return
     let active = true
-    getPendingPhotos()
-      .then((list) => { if (active) setPhotos(list) })
-      .catch((e) => { if (active) { setError(e.message || 'Could not load photos.'); setPhotos([]) } })
+    Promise.all([getPendingPhotos(), getPendingVideos()])
+      .then(([pics, vids]) => {
+        if (!active) return
+        const merged = [
+          ...pics.map((p) => ({ ...p, type: 'photo' })),
+          ...vids.map((v) => ({ ...v, type: 'video' })),
+        ].sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
+        setPhotos(merged)
+      })
+      .catch((e) => { if (active) { setError(e.message || 'Could not load media.'); setPhotos([]) } })
     return () => { active = false }
   }, [isFounder])
 
@@ -34,14 +42,14 @@ export default function PhotoReviewScreen() {
 
   const onApprove = async (p) => {
     setBusyId(p.id); setError('')
-    try { await approvePhoto(p.id); remove(p.id) }
+    try { await (p.type === 'video' ? approveVideo(p.id) : approvePhoto(p.id)); remove(p.id) }
     catch (e) { setError(e.message || 'Could not approve.') }
     setBusyId(null)
   }
 
   const onReject = async (p) => {
     setBusyId(p.id); setError('')
-    try { await rejectPhoto(p.id, p.storagePath); remove(p.id) }
+    try { await (p.type === 'video' ? rejectVideo(p.id, p.storagePath) : rejectPhoto(p.id, p.storagePath)); remove(p.id) }
     catch (e) { setError(e.message || 'Could not reject.') }
     setBusyId(null)
   }
@@ -49,7 +57,7 @@ export default function PhotoReviewScreen() {
   if (!isFounder) {
     return (
       <div style={{ minHeight: '100vh', background: COLORS.pale }}>
-        <Header title="Review photos" onBack={() => navigate('/settings')} />
+        <Header title="Review media" onBack={() => navigate('/settings')} />
         <Screen>
           <p style={{ fontSize: 14, color: COLORS.muted, marginTop: 24, textAlign: 'center' }}>
             This area is for the ComfortMap founder account.
@@ -65,7 +73,7 @@ export default function PhotoReviewScreen() {
       <Header title="Review photos" onBack={() => navigate('/settings')} />
       <Screen>
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>
-          Photos waiting for review. Approve to make one public, or reject to delete it. Nothing shows to anyone until you approve it.
+          Photos and videos waiting for review. Approve to make one public, or reject to delete it. Nothing shows to anyone until you approve it.
         </p>
 
         {error && (
@@ -82,7 +90,7 @@ export default function PhotoReviewScreen() {
             padding: '24px 18px', textAlign: 'center',
           }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>🎉</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.forest }}>No photos waiting</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.forest }}>No media waiting</div>
             <div style={{ fontSize: 13, color: COLORS.muted, marginTop: 4 }}>You're all caught up.</div>
           </div>
         ) : (
@@ -91,12 +99,24 @@ export default function PhotoReviewScreen() {
               background: COLORS.white, border: `1.5px solid ${COLORS.border}`, borderRadius: RADIUS.xl,
               padding: 12, marginBottom: 14,
             }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>{p.venueName}</div>
-              <img
-                src={p.url}
-                alt={`Pending photo for ${p.venueName}`}
-                style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: RADIUS.lg, border: `1px solid ${COLORS.border}` }}
-              />
+              <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
+                {p.type === 'video' ? '🎬' : '📸'} {p.venueName}
+              </div>
+              {p.type === 'video' ? (
+                <video
+                  src={p.url}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  style={{ width: '100%', maxHeight: 320, borderRadius: RADIUS.lg, border: `1px solid ${COLORS.border}`, background: '#000' }}
+                />
+              ) : (
+                <img
+                  src={p.url}
+                  alt={`Pending photo for ${p.venueName}`}
+                  style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: RADIUS.lg, border: `1px solid ${COLORS.border}` }}
+                />
+              )}
               <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
                 <button
                   onClick={() => onApprove(p)}

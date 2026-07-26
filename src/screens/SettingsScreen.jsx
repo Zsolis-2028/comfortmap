@@ -244,7 +244,7 @@ export default function SettingsScreen() {
             <SettingsGroup title="Founder" COLORS={COLORS}>
               <SettingsRow
                 emoji="🖼️"
-                label="Review photos"
+                label="Review photos & videos"
                 value=""
                 onClick={() => navigate('/settings/photos')}
                 last
