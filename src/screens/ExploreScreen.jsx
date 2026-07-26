@@ -35,6 +35,7 @@ export default function ExploreScreen() {
   const [query, setQuery] = useState('')
   const [view, setView] = useState('list') // list | map
   const [showFilters, setShowFilters] = useState(false)
+  const [shuffleKey, setShuffleKey] = useState(0)
 
   // Filters
   const [cat, setCat] = useState(null)
@@ -67,6 +68,19 @@ export default function ExploreScreen() {
   }, [venues, q, cat, fullyMapped, sort])
 
   const activeFilterCount = (cat ? 1 : 0) + (fullyMapped ? 1 : 0) + (sort !== 'detailed' ? 1 : 0)
+
+  // Default browse shows a fresh random 5 so the list never feels overwhelming.
+  // Searching or filtering reaches every mapped place, not just the sample.
+  const isBrowsing = q === '' && activeFilterCount === 0
+  const displayList = useMemo(() => {
+    if (!isBrowsing) return filtered
+    const arr = [...filtered]
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr.slice(0, 5)
+  }, [filtered, isBrowsing, shuffleKey])
   const placeCount = (venues || []).length
   const visitCount = (venues || []).reduce((n, v) => n + (v.visits || 0), 0)
 
@@ -155,12 +169,25 @@ export default function ExploreScreen() {
                 fontFamily: 'inherit', outline: 'none', background: COLORS.white, color: COLORS.text, marginBottom: 14,
               }}
             />
-            {filtered.length === 0 ? (
+            {isBrowsing && filtered.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 2px 12px' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.forest }}>A few places to explore</span>
+                {filtered.length > 5 && (
+                  <button
+                    onClick={() => setShuffleKey(k => k + 1)}
+                    style={{ background: 'none', border: 'none', color: COLORS.forest, fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: 0.85 }}
+                  >
+                    🔀 Shuffle
+                  </button>
+                )}
+              </div>
+            )}
+            {displayList.length === 0 ? (
               <div style={{ textAlign: 'center', color: COLORS.muted, fontSize: 13, padding: '24px 0' }}>
                 No mapped places match your search or filters.
               </div>
             ) : (
-              filtered.map(v => (
+              displayList.map(v => (
                 <button
                   key={v.id}
                   onClick={() => navigate('/venue', { state: { venueName: v.name } })}
