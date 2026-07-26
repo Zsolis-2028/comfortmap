@@ -34,6 +34,11 @@ function lazyWithRetry(importer) {
 // bloating the initial bundle.
 const SplashScreen      = lazyWithRetry(() => import('./screens/SplashScreen'))
 const LandingScreen     = lazyWithRetry(() => import('./screens/LandingScreen'))
+const CleanHomeScreen   = lazyWithRetry(() => import('./screens/CleanHomeScreen'))
+const CleanVenueScreen  = lazyWithRetry(() => import('./screens/CleanVenueScreen'))
+const CleanExploreScreen = lazyWithRetry(() => import('./screens/clean/CleanExploreScreen'))
+const CleanResultScreen = lazyWithRetry(() => import('./screens/clean/CleanResultScreen'))
+const CleanSettingsScreen = lazyWithRetry(() => import('./screens/clean/CleanSettingsScreen'))
 const OnboardingLang     = lazyWithRetry(() => import('./screens/OnboardingLang'))
 const OnboardingWho      = lazyWithRetry(() => import('./screens/OnboardingWho'))
 const OnboardingSensory  = lazyWithRetry(() => import('./screens/OnboardingSensory'))
@@ -70,6 +75,11 @@ export default function App() {
             {/* Splash */}
             <Route path="/"                      element={<SplashScreen />} />
             <Route path="/welcome"               element={<LandingScreen />} />
+            <Route path="/clean"                 element={<CleanHomeScreen />} />
+            <Route path="/clean/venue"           element={<CleanVenueScreen />} />
+            <Route path="/clean/explore"         element={<CleanExploreScreen />} />
+            <Route path="/clean/result"          element={<CleanResultScreen />} />
+            <Route path="/clean/settings"        element={<CleanSettingsScreen />} />
 
             {/* Onboarding */}
             <Route path="/onboarding/language"   element={<OnboardingLang />} />

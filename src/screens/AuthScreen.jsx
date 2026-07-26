@@ -66,7 +66,7 @@ export default function AuthScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title={mode === 'signup' ? 'Create account' : 'Sign in'} onBack={() => navigate('/home')} />
       <Screen>
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>

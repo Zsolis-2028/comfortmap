@@ -36,7 +36,7 @@ export default function VenuePreviewScreen() {
   const { COLORS } = useUser()
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title="Preview" />
       <Screen>
         {/* Title block */}

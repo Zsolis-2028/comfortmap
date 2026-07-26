@@ -136,7 +136,7 @@ export default function ReportScreen() {
 
   if (status === 'done') {
     return (
-      <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+      <div style={{ minHeight: '100vh', background: COLORS.pale }}>
         <Header title="Thank you 💙" onBack={() => navigate('/home')} />
         <Screen>
           <div style={{ textAlign: 'center', marginTop: 40 }}>
@@ -157,7 +157,7 @@ export default function ReportScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title="Rate this place" onBack={() => navigate(-1)} />
       <Screen>
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>
@@ -225,7 +225,52 @@ export default function ReportScreen() {
           )}
         </div>
 
-        {ATTRIBUTES.map(attr => (
+        {/* Quick one-tap overall feel — the fast path. Maps to the sensory
+            rating, so it stays in sync with the detailed row below. */}
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.forest, marginBottom: 8 }}>
+            Overall, how did it feel?
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[
+              { value: 1, emoji: '😊', label: 'Comfortable' },
+              { value: 2, emoji: '😐', label: 'Okay' },
+              { value: 3, emoji: '😣', label: 'Tough' },
+            ].map(o => {
+              const active = ratings.sensory === o.value
+              return (
+                <button
+                  key={o.value}
+                  onClick={() => setRating('sensory', o.value)}
+                  style={{
+                    flex: 1,
+                    background: active ? COLORS.pale : COLORS.white,
+                    border: `1.5px solid ${active ? COLORS.mint : COLORS.border}`,
+                    borderRadius: 16,
+                    padding: '14px 6px',
+                    cursor: 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                    transition: 'all 0.12s',
+                  }}
+                >
+                  <span style={{ fontSize: 30 }} aria-hidden="true">{o.emoji}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: active ? 700 : 500, color: active ? COLORS.forest : COLORS.text }}>
+                    {o.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          <div style={{ fontSize: 11, color: COLORS.muted, marginTop: 8, lineHeight: 1.5 }}>
+            One tap is enough to help. Add more detail below if you like.
+          </div>
+        </div>
+
+        <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.muted, letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 14 }}>
+          More detail <span style={{ fontWeight: 400, textTransform: 'none' }}>(optional)</span>
+        </div>
+
+        {ATTRIBUTES.filter(a => a.key !== 'sensory').map(attr => (
           <div key={attr.key} style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.forest, marginBottom: 8 }}>
               {attr.label}

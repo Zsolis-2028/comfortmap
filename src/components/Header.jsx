@@ -14,7 +14,7 @@ export default function Header({ title, onBack, onRight, rightLabel }) {
       padding: '16px 20px 12px',
       position: 'sticky',
       top: 0,
-      background: isDark ? 'rgba(15,26,20,0.85)' : 'rgba(240,253,244,0.95)',
+      background: isDark ? 'rgba(21,22,43,0.85)' : 'rgba(228,238,252,0.95)',
       backdropFilter: 'blur(8px)',
       borderBottom: `1px solid ${COLORS.border}`,
       zIndex: 50,

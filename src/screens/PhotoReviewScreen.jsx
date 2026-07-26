@@ -48,7 +48,7 @@ export default function PhotoReviewScreen() {
 
   if (!isFounder) {
     return (
-      <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+      <div style={{ minHeight: '100vh', background: COLORS.pale }}>
         <Header title="Review photos" onBack={() => navigate('/settings')} />
         <Screen>
           <p style={{ fontSize: 14, color: COLORS.muted, marginTop: 24, textAlign: 'center' }}>
@@ -61,7 +61,7 @@ export default function PhotoReviewScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title="Review photos" onBack={() => navigate('/settings')} />
       <Screen>
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>
@@ -78,7 +78,7 @@ export default function PhotoReviewScreen() {
           <div style={{ textAlign: 'center', color: COLORS.muted, fontSize: 14, padding: '32px 0' }}>Loading…</div>
         ) : photos.length === 0 ? (
           <div style={{
-            background: COLORS.pale, border: `1.5px solid ${COLORS.border}`, borderRadius: RADIUS.xl,
+            background: COLORS.white, border: `1px solid ${COLORS.border}`, boxShadow: '0 2px 12px rgba(20,30,60,0.06)', borderRadius: 18,
             padding: '24px 18px', textAlign: 'center',
           }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>🎉</div>

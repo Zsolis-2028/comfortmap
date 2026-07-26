@@ -41,7 +41,7 @@ export default function LandingScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       {/* Hero */}
       <div style={{
         background: `linear-gradient(160deg, ${COLORS.pale} 0%, #FFFFFF 70%)`,

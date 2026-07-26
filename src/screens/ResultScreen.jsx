@@ -326,7 +326,7 @@ export default function ResultScreen() {
   if (limitReached) return (
     <div style={{
       minHeight: '100vh',
-      background: COLORS.soft,
+      background: COLORS.pale,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -354,7 +354,7 @@ export default function ResultScreen() {
   if (loading) return (
     <div style={{
       minHeight: '100vh',
-      background: COLORS.soft,
+      background: COLORS.pale,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -386,7 +386,7 @@ export default function ResultScreen() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header
         title={t.yourMap || 'Your Comfort Map'}
         onBack={() => navigate('/home')}
@@ -613,9 +613,10 @@ export default function ResultScreen() {
             style={{
               width: '100%',
               marginTop: 20,
-              background: COLORS.pale,
+              background: COLORS.white,
               border: `1.5px solid ${COLORS.mint}`,
-              borderRadius: RADIUS.lg,
+              boxShadow: '0 2px 12px rgba(20,30,60,0.06)',
+              borderRadius: 16,
               padding: '14px',
               fontSize: 14,
               fontWeight: 700,

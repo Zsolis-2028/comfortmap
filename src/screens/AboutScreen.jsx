@@ -35,7 +35,7 @@ export default function AboutScreen() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title={t.aboutApp || 'About ComfortMap'} onBack={() => navigate(-1)} />
       <Screen>
         <div style={{ textAlign: 'center', margin: '28px 0 24px' }}>

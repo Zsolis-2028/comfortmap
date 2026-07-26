@@ -28,7 +28,7 @@ export default function PrivacyScreen() {
   const t = getText(lang)
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title={t.privacy || 'Privacy Policy'} onBack={() => navigate(-1)} />
       <Screen>
         <p style={{ fontSize: 13, color: COLORS.muted, margin: '16px 0 20px', lineHeight: 1.6 }}>
@@ -37,10 +37,11 @@ export default function PrivacyScreen() {
         </p>
 
         <div style={{
-          background: COLORS.pale,
+          background: COLORS.white,
           border: `1px solid ${COLORS.border}`,
-          borderRadius: RADIUS.md,
-          padding: '12px 14px',
+          boxShadow: '0 2px 12px rgba(20,30,60,0.06)',
+          borderRadius: 16,
+          padding: '14px 16px',
           marginBottom: 22,
           fontSize: 13,
           color: COLORS.forest,

@@ -20,7 +20,7 @@ export default function DataRetentionScreen() {
   const { COLORS } = useUser()
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title="Data Retention" onBack={() => navigate(-1)} />
       <Screen>
         <p style={{ fontSize: 13, color: COLORS.muted, margin: '16px 0 20px', lineHeight: 1.6 }}>

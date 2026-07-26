@@ -58,7 +58,7 @@ export default function InputScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header
         title={venue ? `${venue.emoji} ${getVenueLabel(venue, lang)}` : t.whereGoing || 'Tell us more'}
         onBack={() => navigate('/home')}

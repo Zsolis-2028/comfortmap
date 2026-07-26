@@ -6,12 +6,21 @@ import { useUser } from '../context/UserContext'
 import { VENUES, getVenueLabel } from '../data/venues'
 import { SENSORY_OPTIONS, getSensoryLabel } from '../data/sensoryOptions'
 import { getText } from '../data/languages'
-import { RADIUS, BRAND_GRADIENT } from '../styles/colors'
+import { RADIUS } from '../styles/colors'
 import { PrimaryButton } from '../components/Button'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
+import OnboardingTour from '../components/OnboardingTour'
 
 const WELCOME_STORAGE_KEY = 'cm_welcome_seen'
+
+// Soft per-category icon tints — keeps the grid calm but easier to scan.
+const VENUE_TINTS = {
+  restaurant: '#FFEDD5', bus: '#DBEAFE', gym: '#FEE2E2', mall: '#FCE7F3',
+  airport: '#E0F2FE', hospital: '#FFE4E6', school: '#FEF3C7', park: '#DCFCE7',
+  cinema: '#EDE9FE', office: '#E2E8F0', hotel: '#E0E7FF', worship: '#F3E8FF',
+  stadium: '#CCFBF1', transit: '#CFFAFE', grocery: '#ECFCCB', bank: '#E7E5E4',
+}
 
 export default function HomeScreen() {
   const navigate = useNavigate()
@@ -77,75 +86,31 @@ export default function HomeScreen() {
     )
   }
 
+  const card = {
+    background: COLORS.white,
+    borderRadius: 18,
+    border: `1px solid ${COLORS.border}`,
+    boxShadow: '0 2px 12px rgba(20,30,60,0.06)',
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
-      {showWelcome && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={t.welcomeTitle || 'Welcome to ComfortMap'}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 300,
-            background: 'rgba(0,0,0,0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-          }}
-        >
-          <div style={{
-            background: COLORS.white,
-            borderRadius: RADIUS.xl,
-            padding: 24,
-            maxWidth: 340,
-            textAlign: 'center',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.2)',
-          }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>👋</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.forest, marginBottom: 10 }}>
-              {t.welcomeTitle || 'Welcome to ComfortMap'}
-            </div>
-            <div style={{ fontSize: 14, color: COLORS.text, lineHeight: 1.6, marginBottom: 20 }}>
-              {t.welcomeBody || "Describe a place you're visiting, or pick a place type below. We'll build you a comfort map with what to expect — noise, crowds, and sensory details — so you can feel prepared before you go."}
-            </div>
-            <button
-              onClick={dismissWelcome}
-              style={{
-                background: BRAND_GRADIENT,
-                color: 'white',
-                border: 'none',
-                borderRadius: RADIUS.md,
-                padding: '12px 20px',
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: 'pointer',
-                width: '100%',
-              }}
-            >
-              {t.welcomeDismiss || "Got it, let's go"}
-            </button>
-          </div>
-        </div>
-      )}
-      <div style={{
-        background: BRAND_GRADIENT,
-        color: 'white',
-        padding: '32px 20px 28px',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <div style={{ fontSize: 12, opacity: 0.65, letterSpacing: 3, textTransform: 'uppercase' }}>
-            🗺️ ComfortMap
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
+      {showWelcome && <OnboardingTour onDone={dismissWelcome} />}
+      <Screen>
+        {/* Top bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 0 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <img src="/icons/icon-192.png" alt="" width={28} height={28} style={{ borderRadius: 8 }} />
+            <span style={{ fontSize: 17, fontWeight: 700, color: COLORS.forest }}>ComfortMap</span>
           </div>
           <button
             onClick={() => navigate(signedIn ? '/settings' : '/auth')}
             style={{
-              background: 'rgba(255,255,255,0.18)',
-              border: 'none',
-              color: 'white',
+              background: COLORS.white,
+              border: `1px solid ${COLORS.border}`,
+              color: COLORS.forest,
               borderRadius: 999,
-              padding: '5px 12px',
+              padding: '6px 14px',
               fontSize: 12,
               fontWeight: 700,
               cursor: 'pointer',
@@ -154,16 +119,15 @@ export default function HomeScreen() {
             {signedIn ? '👤 Account' : (t.signInShort || 'Sign in')}
           </button>
         </div>
-        <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.5, marginBottom: 6 }}>
-          {t.whereGoing || 'Where are you going?'}
-        </div>
-        <div style={{ fontSize: 14, opacity: 0.8 }}>
-          {t.prepareYou || "Tell us about the place. We'll prepare you."}
-        </div>
-      </div>
 
-      <Screen>
-        <div style={{ marginTop: 20 }}>
+        {/* Hero card */}
+        <div style={{ ...card, padding: '22px 20px' }}>
+          <div style={{ fontSize: 26, fontWeight: 800, color: COLORS.forest, letterSpacing: -0.5, marginBottom: 6 }}>
+            {t.whereGoing || 'Where are you going?'}
+          </div>
+          <div style={{ fontSize: 14, color: COLORS.muted, marginBottom: 16 }}>
+            {t.prepareYou || "Tell us about the place. We'll prepare you."}
+          </div>
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
@@ -242,13 +206,11 @@ export default function HomeScreen() {
         {/* Sensory badges — translated */}
         {sensory.length > 0 && (
           <div style={{
+            ...card,
             marginTop: 16,
-            background: COLORS.pale,
-            border: `1px solid ${COLORS.mint}`,
-            borderRadius: RADIUS.md,
-            padding: '10px 14px',
+            padding: '14px 16px',
           }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.forest, marginBottom: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
               {t.sensoryActive || '✓ Sensory profile active'}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -257,9 +219,9 @@ export default function HomeScreen() {
                 return opt ? (
                   <span key={key} style={{
                     fontSize: 12,
-                    background: COLORS.white,
+                    background: COLORS.pale,
                     borderRadius: '999px',
-                    padding: '3px 10px',
+                    padding: '4px 11px',
                     color: COLORS.forest,
                     border: `1px solid ${COLORS.border}`,
                   }}>
@@ -294,21 +256,43 @@ export default function HomeScreen() {
                 onClick={() => handleVenuePick(venue)}
                 style={{
                   background: COLORS.white,
-                  border: `1.5px solid ${COLORS.border}`,
-                  borderRadius: RADIUS.md,
-                  padding: '14px 10px',
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: 16,
+                  boxShadow: '0 2px 12px rgba(20,30,60,0.06)',
+                  padding: '16px 10px',
+                  minHeight: 120,
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 6,
-                  transition: 'all 0.15s',
+                  justifyContent: 'center',
+                  gap: 10,
+                  transition: 'transform 0.15s, box-shadow 0.15s, border-color 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = COLORS.soft}
-                onMouseLeave={e => e.currentTarget.style.background = COLORS.white}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = '0 6px 18px rgba(20,30,60,0.10)'
+                  e.currentTarget.style.borderColor = COLORS.mint
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'none'
+                  e.currentTarget.style.boxShadow = '0 2px 12px rgba(20,30,60,0.06)'
+                  e.currentTarget.style.borderColor = COLORS.border
+                }}
               >
-                <span style={{ fontSize: 28 }}>{venue.emoji}</span>
-                <span style={{ fontSize: 12, color: COLORS.text, fontWeight: 500, textAlign: 'center', lineHeight: 1.3 }}>
+                <span style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: '50%',
+                  background: VENUE_TINTS[venue.key] || COLORS.pale,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 26,
+                }}>
+                  {venue.emoji}
+                </span>
+                <span style={{ fontSize: 12.5, color: COLORS.forest, fontWeight: 600, textAlign: 'center', lineHeight: 1.3 }}>
                   {getVenueLabel(venue, lang)}
                 </span>
               </button>

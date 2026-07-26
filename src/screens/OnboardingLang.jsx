@@ -19,7 +19,7 @@ export default function OnboardingLang() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16 }}>
         <img src="/icons/icon-192.png" alt="ComfortMap" width={40} height={40} style={{ borderRadius: 10 }} />
       </div>

@@ -16,7 +16,7 @@ export default function SavedScreen() {
   const t = getText(lang)
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title={t.savedMaps || 'Saved Maps'} />
       <Screen>
         <div style={{ marginTop: 16 }}>
@@ -48,14 +48,15 @@ export default function SavedScreen() {
                   }}
                   style={{
                     background: COLORS.white,
-                    border: `1.5px solid ${COLORS.border}`,
-                    borderRadius: RADIUS.lg,
-                    padding: '14px 16px',
+                    border: `1px solid ${COLORS.border}`,
+                    boxShadow: '0 2px 12px rgba(20,30,60,0.06)',
+                    borderRadius: 16,
+                    padding: '15px 16px',
                     marginBottom: 12,
                     cursor: 'pointer',
                     transition: 'background 0.15s',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = COLORS.soft}
+                  onMouseEnter={e => e.currentTarget.style.background = COLORS.pale}
                   onMouseLeave={e => e.currentTarget.style.background = COLORS.white}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

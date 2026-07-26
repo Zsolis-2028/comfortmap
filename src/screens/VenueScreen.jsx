@@ -24,7 +24,7 @@ export default function VenueScreen() {
   }, [venueName, navigate])
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title={venueName || 'Place'} onBack={() => navigate(-1)} />
       <Screen>
         <VenuePhotos venueName={venueName} />

@@ -187,7 +187,7 @@ export default function SettingsScreen() {
   const whoLabel = whoOption ? getWhoLabel(whoOption, lang) : (t.notSet || 'Not set')
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.soft }}>
+    <div style={{ minHeight: '100vh', background: COLORS.pale }}>
       <Header title={t.settings || 'Settings'} />
       <Screen>
         <div style={{ marginTop: 16 }}>
@@ -326,6 +326,13 @@ export default function SettingsScreen() {
           </SettingsGroup>
 
           <SettingsGroup title={t.about || 'About'} COLORS={COLORS}>
+            <SettingsRow
+              emoji="👋"
+              label="Replay intro tour"
+              value=""
+              onClick={() => { try { localStorage.removeItem('cm_welcome_seen') } catch {} ; navigate('/home') }}
+              COLORS={COLORS}
+            />
             <SettingsRow emoji="ℹ️" label={t.aboutApp || 'About ComfortMap'} value="" onClick={() => navigate('/settings/about')} COLORS={COLORS} />
             <SettingsRow emoji="🔒" label={t.privacy || 'Privacy policy'} value="" onClick={() => navigate('/settings/privacy')} COLORS={COLORS} />
             <SettingsRow emoji="📄" label={t.terms || 'Terms of service'} value="" onClick={() => navigate('/terms')} COLORS={COLORS} />

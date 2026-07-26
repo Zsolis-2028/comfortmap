@@ -17,7 +17,7 @@ export default function NotFoundScreen() {
       aria-labelledby="notfound-title"
       style={{
         minHeight: '100vh',
-        background: COLORS.soft,
+        background: COLORS.pale,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
