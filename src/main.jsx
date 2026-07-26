@@ -13,13 +13,23 @@ Sentry.init({
   tracesSampleRate: 1.0,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
-  // Drop stale-deploy chunk-load errors: the app already auto-recovers from
-  // these (App.jsx lazyWithRetry + vite:preloadError + the ErrorBoundary), so
-  // they're self-healing noise, not something to act on. Keeps Sentry meaningful.
+  // Drop noise we can't act on and that doesn't affect users:
+  //  1) Stale-deploy chunk-load errors — the app already auto-recovers (App.jsx
+  //     lazyWithRetry + vite:preloadError + the ErrorBoundary), so they're
+  //     self-healing, not something to fix.
+  //  2) In-app-browser injected-script errors — Instagram/Facebook/etc. inject
+  //     their own JS (window.webkit.messageHandlers, sendDataToNative,
+  //     sendPageHideMessage) into every page to talk to the native app. When
+  //     that bridge isn't present it throws inside THEIR code, not ours; the app
+  //     itself loads fine. Pure third-party noise.
   beforeSend(event, hint) {
     const err = hint && hint.originalException
     const msg = (err && err.message) || (event && event.message) || ''
-    if (/dynamically imported module|module script failed|importing a module/i.test(String(msg))) {
+    const text = String(msg)
+    if (/dynamically imported module|module script failed|importing a module/i.test(text)) {
+      return null
+    }
+    if (/webkit\.messageHandlers|sendDataToNative|sendPageHideMessage/i.test(text)) {
       return null
     }
     return event
