@@ -7,6 +7,7 @@
 
 import { supabase } from './supabaseClient'
 import { ATTRIBUTES, labelForRating } from './attributes'
+import { getCaptchaToken } from './captcha'
 
 // Make sure we have an auth session so Row Level Security lets us write.
 // We use anonymous sign-in: the visitor silently gets a real (anonymous)
@@ -14,7 +15,10 @@ import { ATTRIBUTES, labelForRating } from './attributes'
 export async function ensureSignedIn() {
   const { data: { session } } = await supabase.auth.getSession()
   if (session) return session.user
-  const { data, error } = await supabase.auth.signInAnonymously()
+  const captchaToken = await getCaptchaToken()
+  const { data, error } = await supabase.auth.signInAnonymously(
+    captchaToken ? { options: { captchaToken } } : undefined
+  )
   if (error) throw error
   return data.user
 }

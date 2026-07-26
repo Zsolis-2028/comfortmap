@@ -4,6 +4,7 @@
 // follow you across devices.
 
 import { supabase } from './supabaseClient'
+import { getCaptchaToken } from './captcha'
 
 // Current session (or null if signed out / anonymous-only).
 export async function getSession() {
@@ -23,10 +24,14 @@ export function onAuthChange(callback) {
 // to the project's Site URL.
 export async function signUp(email, password) {
   const emailRedirectTo = typeof window !== 'undefined' ? window.location.origin : undefined
+  const captchaToken = await getCaptchaToken()
+  const options = {}
+  if (emailRedirectTo) options.emailRedirectTo = emailRedirectTo
+  if (captchaToken) options.captchaToken = captchaToken
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: emailRedirectTo ? { emailRedirectTo } : undefined,
+    options: Object.keys(options).length ? options : undefined,
   })
   if (error) throw error
   return data
@@ -34,7 +39,12 @@ export async function signUp(email, password) {
 
 // Sign in to an existing account.
 export async function signIn(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  const captchaToken = await getCaptchaToken()
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+    ...(captchaToken ? { options: { captchaToken } } : {}),
+  })
   if (error) throw error
   return data
 }

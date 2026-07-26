@@ -5,6 +5,7 @@
 
 import { getText } from '../data/languages'
 import { supabase } from '../lib/supabaseClient'
+import { getCaptchaToken } from '../lib/captcha'
 
 const API_URL = '/api/comfort'
 
@@ -17,7 +18,10 @@ async function getAccessToken() {
   try {
     let { data: { session } } = await supabase.auth.getSession()
     if (!session) {
-      const { data } = await supabase.auth.signInAnonymously()
+      const captchaToken = await getCaptchaToken()
+      const { data } = await supabase.auth.signInAnonymously(
+        captchaToken ? { options: { captchaToken } } : undefined
+      )
       session = data?.session || null
     }
     return session?.access_token || null
