@@ -33,7 +33,8 @@ export default function RefundScreen() {
         </Section>
 
         <Section title="Cancelling" COLORS={COLORS}>
-          You can cancel anytime from your account settings, or by emailing us. When you cancel, your
+          You can cancel anytime by emailing us from the address on your account, and we'll cancel it
+          right away (self-service cancellation from your account is coming soon). When you cancel, your
           subscription stays active until the end of the current billing period you've already paid for —
           you won't be charged again after that, and your account simply returns to the free tier. You keep
           your account and everything you've contributed.
