@@ -9,7 +9,7 @@ import { RADIUS } from '../styles/colors'
 import Header from '../components/Header'
 import Screen from '../components/Screen'
 import { PrimaryButton, GhostButton } from '../components/Button'
-import { signUp, signIn } from '../lib/auth'
+import { signUp, signIn, requestPasswordReset } from '../lib/auth'
 
 export default function AuthScreen() {
   const navigate = useNavigate()
@@ -21,7 +21,8 @@ export default function AuthScreen() {
   const [status, setStatus] = useState('idle') // idle | working | needsConfirm | error
   const [message, setMessage] = useState('')
 
-  const canSubmit = email.trim().length > 3 && password.length >= 8 && status !== 'working'
+  const emailOk = email.trim().length > 3
+  const canSubmit = (mode === 'reset' ? emailOk : (emailOk && password.length >= 8)) && status !== 'working'
 
   const inputStyle = {
     width: '100%',
@@ -41,6 +42,12 @@ export default function AuthScreen() {
     setStatus('working')
     setMessage('')
     try {
+      if (mode === 'reset') {
+        await requestPasswordReset(email.trim())
+        setStatus('needsConfirm')
+        setMessage('If an account exists for that email, a password-reset link is on its way. Check your inbox (and spam).')
+        return
+      }
       if (mode === 'signup') {
         const data = await signUp(email.trim(), password)
         if (data?.session) {
@@ -67,12 +74,14 @@ export default function AuthScreen() {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.pale }}>
-      <Header title={mode === 'signup' ? 'Create account' : 'Sign in'} onBack={() => navigate('/home')} />
+      <Header title={mode === 'reset' ? 'Reset password' : mode === 'signup' ? 'Create account' : 'Sign in'} onBack={() => navigate('/home')} />
       <Screen>
         <p style={{ fontSize: 14, color: COLORS.muted, margin: '16px 0', lineHeight: 1.6 }}>
-          {mode === 'signup'
-            ? 'Create an account so your history and plan follow you across devices. Totally optional — ComfortMap works without one.'
-            : 'Welcome back. Sign in to pick up where you left off.'}
+          {mode === 'reset'
+            ? "Enter your email and we'll send you a link to set a new password."
+            : mode === 'signup'
+              ? 'Create an account so your history and plan follow you across devices. Totally optional — ComfortMap works without one.'
+              : 'Welcome back. Sign in to pick up where you left off.'}
         </p>
 
         <input
@@ -84,15 +93,30 @@ export default function AuthScreen() {
           style={inputStyle}
           onKeyDown={e => { if (e.key === 'Enter' && canSubmit) handleSubmit() }}
         />
-        <input
-          type="password"
-          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          placeholder="Password (8+ characters)"
-          style={inputStyle}
-          onKeyDown={e => { if (e.key === 'Enter' && canSubmit) handleSubmit() }}
-        />
+        {mode !== 'reset' && (
+          <input
+            type="password"
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Password (8+ characters)"
+            style={inputStyle}
+            onKeyDown={e => { if (e.key === 'Enter' && canSubmit) handleSubmit() }}
+          />
+        )}
+
+        {mode === 'signin' && (
+          <button
+            onClick={() => { setMode('reset'); setMessage(''); setStatus('idle') }}
+            style={{
+              display: 'block', marginLeft: 'auto', marginBottom: 12,
+              background: 'none', border: 'none', color: COLORS.forest,
+              fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '2px 2px',
+            }}
+          >
+            Forgot password?
+          </button>
+        )}
 
         {message && (
           <div style={{
@@ -109,12 +133,20 @@ export default function AuthScreen() {
         )}
 
         <PrimaryButton onClick={handleSubmit} disabled={!canSubmit}>
-          {status === 'working' ? 'Please wait…' : (mode === 'signup' ? 'Create account' : 'Sign in')}
+          {status === 'working'
+            ? 'Please wait…'
+            : mode === 'reset' ? 'Send reset link' : mode === 'signup' ? 'Create account' : 'Sign in'}
         </PrimaryButton>
 
-        <GhostButton onClick={switchMode}>
-          {mode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create an account'}
-        </GhostButton>
+        {mode === 'reset' ? (
+          <GhostButton onClick={() => { setMode('signin'); setMessage(''); setStatus('idle') }}>
+            ← Back to sign in
+          </GhostButton>
+        ) : (
+          <GhostButton onClick={switchMode}>
+            {mode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create an account'}
+          </GhostButton>
+        )}
 
         <button
           onClick={() => navigate('/home')}

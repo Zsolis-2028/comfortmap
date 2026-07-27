@@ -54,3 +54,26 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut()
   if (error) throw error
 }
+
+// Send a password-reset email. The link brings the user back to /reset-password,
+// where they choose a new password. Honest note: this relies on Supabase sending
+// the email (default sender is rate-limited; configure SMTP for reliable volume).
+export async function requestPasswordReset(email) {
+  const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : undefined
+  const captchaToken = await getCaptchaToken()
+  const options = {}
+  if (redirectTo) options.redirectTo = redirectTo
+  if (captchaToken) options.captchaToken = captchaToken
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    email,
+    Object.keys(options).length ? options : undefined
+  )
+  if (error) throw error
+}
+
+// Set a new password. After the user clicks the reset link, Supabase gives them
+// a temporary recovery session; this updates their password within it.
+export async function updatePassword(newPassword) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword })
+  if (error) throw error
+}
