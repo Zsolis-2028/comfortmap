@@ -63,7 +63,10 @@ export default function TermsScreen() {
           each person can create a limited number of new comfort maps per month, which resets at
           the start of each month. Asking follow-up questions about a map you've already generated
           doesn't count against this limit. We may adjust this limit over time as the service
-          grows.
+          grows. If you'd like a higher monthly limit, an optional paid subscription
+          (ComfortMap Pro) is available for a recurring monthly fee. Pro is entirely optional —
+          ComfortMap remains free to use. You can cancel your subscription at any time; see our
+          Refund Policy for details.
         </Section>
 
         <Section title="3. No medical advice" COLORS={COLORS}>
