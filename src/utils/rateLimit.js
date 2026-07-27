@@ -9,6 +9,10 @@
 // Free is intentionally generous during beta; tighten when billing launches.
 
 const STORAGE_KEY = 'cm_usage'
+// FREE monthly map limit. This is only the friendly client-side mirror — the
+// real, un-bypassable wall is the "else" value in the check_and_record_map_generation
+// function (ComfortMap - Phase11 usage limits.sql). If you change this number,
+// change it there too, or the two will disagree.
 export const MONTHLY_MAP_LIMIT = 7
 
 function monthKey() {
