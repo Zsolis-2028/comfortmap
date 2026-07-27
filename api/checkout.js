@@ -53,6 +53,9 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') { sendJson(res, 405, { error: 'Method not allowed' }); return }
 
   const key = process.env.STRIPE_SECRET_KEY
+  // Diagnostic (safe): logs only whether the key exists + its mode prefix + the
+  // price id — never the secret itself. Lets us see the live config from logs.
+  console.error('checkout_config', 'hasKey=' + Boolean(key), 'keyPrefix=' + (key ? key.slice(0, 8) : 'MISSING'), 'price=' + PRICE_PRO)
   if (!key) { sendJson(res, 500, { error: 'Billing is not configured yet.' }); return }
 
   const user = await getUser(req)
