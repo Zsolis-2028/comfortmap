@@ -13,9 +13,15 @@ import { RADIUS, BRAND_GRADIENT } from '../styles/colors'
 import Header from '../components/Header'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
-import { GhostButton } from '../components/Button'
+import { GhostButton, PrimaryButton } from '../components/Button'
 import CommunityReports from '../components/CommunityReports'
 import { getVenueState, verifiedContextFromState } from '../lib/reports'
+import { startProCheckout } from '../lib/billing'
+
+// Paid upgrades are OFF during beta (VITE_BILLING_ENABLED unset/false). When
+// turned on, the monthly-limit screen becomes an upgrade offer instead of the
+// gentle "come back next month" message. Safe to ship while still off.
+const BILLING_ENABLED = import.meta.env.VITE_BILLING_ENABLED === 'true'
 
 const FOLLOW_UP_LIMIT = 3
 
@@ -215,6 +221,8 @@ export default function ResultScreen() {
   const [followUpCount, setFollowUpCount] = useState(0)
   const [hasVerified, setHasVerified] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
+  const [upgradeBusy, setUpgradeBusy] = useState(false)
+  const [upgradeError, setUpgradeError] = useState('')
   const runningRef = useRef(false)
   const ttsSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -322,7 +330,14 @@ export default function ResultScreen() {
     setSaved(true)
   }
 
-  // Daily limit reached
+  const handleUpgrade = async () => {
+    setUpgradeBusy(true); setUpgradeError('')
+    try { await startProCheckout() } // redirects to Stripe on success
+    catch (e) { setUpgradeError(e.message || 'Could not start checkout.'); setUpgradeBusy(false) }
+  }
+
+  // Monthly limit reached. With billing off (beta): a gentle "come back next
+  // month" message. With billing on: an upgrade offer + a no-pressure fallback.
   if (limitReached) return (
     <div style={{
       minHeight: '100vh',
@@ -334,16 +349,32 @@ export default function ResultScreen() {
       textAlign: 'center',
       padding: 32,
     }}>
-      <div style={{ fontSize: 52, marginBottom: 16 }}>🌙</div>
+      <div style={{ fontSize: 52, marginBottom: 16 }}>{BILLING_ENABLED ? '✨' : '🌙'}</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: COLORS.forest, marginBottom: 8 }}>
-        {t.limitReachedTitle || "You've used all your comfort maps for this month"}
+        {BILLING_ENABLED
+          ? "You've used your free maps for this month"
+          : (t.limitReachedTitle || "You've used all your comfort maps for this month")}
       </div>
-      <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 280, lineHeight: 1.6, marginBottom: 28 }}>
-        {t.limitReachedSubtitle || 'Take a breath — your maps refresh at the start of next month. Come back then for more.'}
+      <div style={{ fontSize: 14, color: COLORS.muted, maxWidth: 300, lineHeight: 1.6, marginBottom: 28 }}>
+        {BILLING_ENABLED
+          ? 'Upgrade to Pro for many more maps every month — or come back next month and keep going free.'
+          : (t.limitReachedSubtitle || 'Take a breath — your maps refresh at the start of next month. Come back then for more.')}
       </div>
-      <div style={{ width: '100%', maxWidth: 280 }}>
+      <div style={{ width: '100%', maxWidth: 300 }}>
+        {BILLING_ENABLED && (
+          <>
+            <PrimaryButton onClick={handleUpgrade} disabled={upgradeBusy}>
+              {upgradeBusy ? 'Opening checkout…' : 'Upgrade to Pro — $5.99/mo'}
+            </PrimaryButton>
+            {upgradeError && (
+              <div style={{ background: COLORS.error, color: COLORS.errorText, borderRadius: RADIUS.md, padding: '10px 14px', fontSize: 13, marginTop: 10 }}>
+                {upgradeError}
+              </div>
+            )}
+          </>
+        )}
         <GhostButton onClick={() => navigate('/home')}>
-          {t.backToHome || '← Back to home'}
+          {BILLING_ENABLED ? 'Maybe later' : (t.backToHome || '← Back to home')}
         </GhostButton>
       </div>
     </div>

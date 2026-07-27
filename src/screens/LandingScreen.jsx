@@ -60,7 +60,7 @@ export default function LandingScreen() {
         </p>
         <Cta>Get Started — Free →</Cta>
         <div style={{ fontSize: 13, color: COLORS.muted, marginTop: 14 }}>
-          Free · works on any phone · no download
+          Free to start · no card needed · works on any phone
         </div>
       </div>
 
