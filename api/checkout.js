@@ -73,7 +73,9 @@ module.exports = async function handler(req, res) {
     })
     sendJson(res, 200, { url: session.url })
   } catch (err) {
-    // Never leak Stripe internals to the client.
+    // Never leak Stripe internals to the CLIENT, but log them server-side so we
+    // can see exactly why Stripe refused (mode mismatch, inactive account, etc.).
+    console.error('checkout_error', err && err.type, err && err.code, err && err.message)
     sendJson(res, 500, { error: 'Could not start checkout. Please try again.' })
   }
 }
