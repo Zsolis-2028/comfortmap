@@ -53,7 +53,9 @@ export const getComfortMap = async ({ userMessage, sensory, who, lang, conversat
   const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.error || 'Something went wrong. Please try again.')
+    const err = new Error(data.error || 'Something went wrong. Please try again.')
+    if (data.limitReached) err.limitReached = true
+    throw err
   }
 
   return data.text

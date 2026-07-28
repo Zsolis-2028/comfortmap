@@ -433,7 +433,7 @@ module.exports = async function handler(req, res) {
     if (gate && gate.allowed === false) {
       logEvent('limit_reached', req, { plan: gate.plan, used: gate.used, limit: gate.limit })
       sendJson(res, 429, {
-        error: `You've used all ${gate.limit} comfort maps on your plan this month. Your limit resets at the start of next month.`,
+        error: "You've used all your comfort maps for this month. Your limit resets at the start of next month.",
         limitReached: true,
       })
       return

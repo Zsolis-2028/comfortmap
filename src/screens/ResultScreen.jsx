@@ -280,7 +280,11 @@ export default function ResultScreen() {
         { role: 'assistant', content: result },
       ])
     } catch (err) {
-      setError(err.message)
+      // A hit against the monthly limit shows the (upgrade) limit screen rather
+      // than a raw red error — the server is the source of truth here, since the
+      // client's local counter can lag behind (other devices, cleared storage).
+      if (err.limitReached) setLimitReached(true)
+      else setError(err.message)
     }
     setLoading(false)
     runningRef.current = false
@@ -299,7 +303,8 @@ export default function ResultScreen() {
       setResponse(result)
       setFollowUpCount(c => c + 1)
     } catch (err) {
-      setError(err.message)
+      if (err.limitReached) setLimitReached(true)
+      else setError(err.message)
     }
     setFollowUpLoading(false)
   }
