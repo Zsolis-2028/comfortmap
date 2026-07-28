@@ -11,7 +11,7 @@ import Header from '../components/Header'
 import Screen from '../components/Screen'
 import NavBar from '../components/NavBar'
 import { signOut } from '../lib/auth'
-import { startProCheckout } from '../lib/billing'
+import { startProCheckout, openBillingPortal } from '../lib/billing'
 
 // Billing is OFF during the free beta. To turn on paid upgrades when you go
 // live, set VITE_BILLING_ENABLED=true in Vercel and redeploy.
@@ -170,6 +170,8 @@ export default function SettingsScreen() {
 
   const [upgradeBusy, setUpgradeBusy] = useState(false)
   const [upgradeError, setUpgradeError] = useState('')
+  const [manageBusy, setManageBusy] = useState(false)
+  const [manageError, setManageError] = useState('')
 
   const handleSignOut = async () => {
     try { await signOut() } catch {}
@@ -180,6 +182,12 @@ export default function SettingsScreen() {
     setUpgradeBusy(true); setUpgradeError('')
     try { await startProCheckout() } // redirects to Stripe on success
     catch (e) { setUpgradeError(e.message || 'Could not start checkout.'); setUpgradeBusy(false) }
+  }
+
+  const handleManage = async () => {
+    setManageBusy(true); setManageError('')
+    try { await openBillingPortal() } // redirects to the Stripe portal on success
+    catch (e) { setManageError(e.message || 'Could not open the subscription portal.'); setManageBusy(false) }
   }
 
   const langLabel = LANGUAGES.find(l => l.code === lang)?.label || 'English'
@@ -237,6 +245,24 @@ export default function SettingsScreen() {
           {upgradeError && (
             <div style={{ background: COLORS.error, color: COLORS.errorText, borderRadius: RADIUS.md, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
               {upgradeError}
+            </div>
+          )}
+
+          {BILLING_ENABLED && signedIn && (plan === 'pro' || plan === 'family') && (
+            <SettingsGroup title="ComfortMap Pro" COLORS={COLORS}>
+              <SettingsRow
+                emoji="💳"
+                label={manageBusy ? 'Opening…' : 'Manage subscription'}
+                value=""
+                onClick={manageBusy ? undefined : handleManage}
+                last
+                COLORS={COLORS}
+              />
+            </SettingsGroup>
+          )}
+          {manageError && (
+            <div style={{ background: COLORS.error, color: COLORS.errorText, borderRadius: RADIUS.md, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
+              {manageError}
             </div>
           )}
 

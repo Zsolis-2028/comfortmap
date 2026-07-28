@@ -18,3 +18,20 @@ export async function startProCheckout() {
 
   window.location.href = data.url
 }
+
+// Opens Stripe's Customer Portal so a subscriber can manage or cancel their plan.
+// The server finds their Stripe customer and returns a portal URL to redirect to.
+export async function openBillingPortal() {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session && session.access_token
+  if (!token) throw new Error('Please sign in first.')
+
+  const r = await fetch('/api/portal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+  })
+  const data = await r.json().catch(() => ({}))
+  if (!r.ok || !data.url) throw new Error(data.error || 'Could not open the subscription portal. Please try again.')
+
+  window.location.href = data.url
+}
