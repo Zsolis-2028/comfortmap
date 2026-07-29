@@ -4,6 +4,9 @@
   },
   "rewrites": [
     { "source": "/guides/sensory-friendly-san-antonio", "destination": "/guides/sensory-friendly-san-antonio.html" },
+    { "source": "/guides/dmv-with-sensory-sensitivities", "destination": "/guides/dmv-with-sensory-sensitivities.html" },
+    { "source": "/guides/sensory-friendly-kids-activities-san-antonio", "destination": "/guides/sensory-friendly-kids-activities-san-antonio.html" },
+    { "source": "/guides/first-restaurant-visit-sensory-guide", "destination": "/guides/first-restaurant-visit-sensory-guide.html" },
     { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
   ]
 }
