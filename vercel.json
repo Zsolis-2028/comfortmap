@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/comfort.js": { "maxDuration": 60 }
+  },
   "rewrites": [
     { "source": "/guides/sensory-friendly-san-antonio", "destination": "/guides/sensory-friendly-san-antonio.html" },
     { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }

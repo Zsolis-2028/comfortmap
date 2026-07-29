@@ -7,10 +7,10 @@
 // Deploy trigger: 2026-07-10
 
 const MODEL = 'claude-sonnet-5'
-const MAX_TOKENS = 1500
+const MAX_TOKENS = 1200             // trimmed from 1500 — tighter maps generate faster
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages'
-const ANTHROPIC_TIMEOUT_MS = 22000 // per attempt
-const MAX_ATTEMPTS = 2             // one automatic retry on a transient failure
+const ANTHROPIC_TIMEOUT_MS = 45000 // per attempt — long enough to finish on the first try
+const MAX_ATTEMPTS = 2             // one automatic retry, but NOT on a timeout (see catch)
 const RETRY_BACKOFF_MS = 600
 const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504, 529])
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -484,8 +484,11 @@ module.exports = async function handler(req, res) {
     } catch (err) {
       clearTimeout(timeoutId)
       const isTimeout = err.name === 'AbortError'
-      if (attempt < MAX_ATTEMPTS) {
-        logEvent('upstream_retry', req, { kind: isTimeout ? 'timeout' : 'network', attempt })
+      // Retry only fast-failing network blips — NOT timeouts. A timed-out attempt
+      // already consumed the full budget; retrying it just doubles the user's
+      // wait (and risks exceeding the function's max duration).
+      if (!isTimeout && attempt < MAX_ATTEMPTS) {
+        logEvent('upstream_retry', req, { kind: 'network', attempt })
         await sleep(RETRY_BACKOFF_MS)
         continue
       }
