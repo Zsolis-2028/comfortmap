@@ -5,6 +5,24 @@ import * as Sentry from '@sentry/react'
 import App from './App'
 import './styles/global.css'
 
+// Defensive guard against browser translation extensions (Google Translate,
+// etc.) that move or remove text nodes behind React's back — the classic
+// "removeChild/insertBefore: node is not a child of this node" crash. Instead of
+// letting that white-screen the page, we quietly no-op the invalid call.
+// This matters especially here: ComfortMap's users often run translate tools.
+if (typeof Node === 'function' && Node.prototype) {
+  const _removeChild = Node.prototype.removeChild
+  Node.prototype.removeChild = function (child) {
+    if (child && child.parentNode !== this) return child
+    return _removeChild.apply(this, arguments)
+  }
+  const _insertBefore = Node.prototype.insertBefore
+  Node.prototype.insertBefore = function (newNode, referenceNode) {
+    if (referenceNode && referenceNode.parentNode !== this) return newNode
+    return _insertBefore.apply(this, arguments)
+  }
+}
+
 Sentry.init({
   dsn: 'https://23e0e1f2fe19bd83d4d9fcbcbe2d6ab3@o4511711404228608.ingest.us.sentry.io/4511711432212485',
   environment: import.meta.env.MODE,
@@ -30,6 +48,13 @@ Sentry.init({
       return null
     }
     if (/webkit\.messageHandlers|sendDataToNative|sendPageHideMessage/i.test(text)) {
+      return null
+    }
+    // 3) Browser translation extensions (Google Translate, etc.) mutate the DOM
+    //    behind React's back — "removeChild/insertBefore: not a child" and the
+    //    circular-JSON serialization their injected scripts throw. Not our code;
+    //    the defensive Node patch above also prevents the page from breaking.
+    if (/not a child of this node|removeChild|insertBefore|circular structure/i.test(text)) {
       return null
     }
     return event
