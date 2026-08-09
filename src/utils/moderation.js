@@ -13,6 +13,7 @@ const BLOCKED = [
   // strong profanity
   'fuck', 'fucking', 'fucked', 'motherfucker', 'shit', 'bullshit', 'bitch',
   'asshole', 'cunt', 'cock', 'pussy', 'slut', 'whore', 'prick', 'wanker',
+  'bastard',
   // slurs — racial / homophobic / ableist (blocked outright)
   'nigger', 'nigga', 'faggot', 'fag', 'retard', 'retarded', 'spic', 'chink',
   'kike', 'tranny', 'dyke', 'coon',
