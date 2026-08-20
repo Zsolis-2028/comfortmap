@@ -32,7 +32,7 @@ export default function PrivacyScreen() {
       <Header title={t.privacy || 'Privacy Policy'} onBack={() => navigate(-1)} />
       <Screen>
         <p style={{ fontSize: 13, color: COLORS.muted, margin: '16px 0 20px', lineHeight: 1.6 }}>
-          Last updated July 2026. This policy explains exactly what ComfortMap stores and shares —
+          Last updated August 2026. This policy explains exactly what ComfortMap stores and shares —
           in plain language, no legalese.
         </p>
 
@@ -47,35 +47,61 @@ export default function PrivacyScreen() {
           color: COLORS.forest,
           lineHeight: 1.6,
         }}>
-          🔒 ComfortMap has no account, no server, and no database. Everything you enter is
-          stored only on this device.
+          🔒 We collect the least we need to run ComfortMap, we're clear about what we keep, and
+          you can ask us to delete it at any time.
         </div>
 
         <Section title="What we store" COLORS={COLORS}>
-          Your language, who you're preparing for, your sensory profile, and any comfort maps you
-          save are stored locally in your browser's storage on this device. This data never leaves
-          your device and is never sent to ComfortMap — because ComfortMap has no servers to send it
-          to. Clearing your browser data or uninstalling the app permanently deletes it.
+          Your account (email + login), your sensory profile, and any comfort maps you save are
+          tied to your account so they follow you across devices. If you submit a comfort report,
+          photo, or video, it becomes part of the shared community map (see "Community
+          contributions" below). We also track basic usage (like how many maps you've generated)
+          to enforce plan limits, and — if you subscribe to Pro — your subscription status. We
+          never store your card number; billing is handled entirely by Stripe.
         </Section>
 
         <Section title="What we send to Claude (Anthropic)" COLORS={COLORS}>
-          When you build a comfort map, the venue details you type and your sensory profile are
-          sent directly from your device to Anthropic's Claude API to generate your map. That's the
-          only outside party that ever sees what you enter. Claude does not retain your
-          conversation between visits — each map is generated fresh from what you provide. See{' '}
+          When you build a comfort map, the venue details you enter and your sensory profile are
+          sent to our server, which calls Anthropic's Claude API to generate your map. Anthropic is
+          the only outside party that ever sees what you enter for this purpose. Claude does not
+          retain your conversation between visits — each map is generated fresh from what you
+          provide. See{' '}
           <span style={{ color: COLORS.green, fontWeight: 600 }}>anthropic.com/privacy</span> for
           how Anthropic handles API data.
         </Section>
 
+        <Section title="Community contributions" COLORS={COLORS}>
+          Reports, photos, and videos you submit become part of ComfortMap's shared community map
+          so they can help other visitors. They're stored without your name attached in the public
+          map. If you delete your account, we remove your personal identifiers from your
+          contributions; the anonymized report data itself may remain part of the shared map so it
+          stays useful for the community. Comfort reports naturally age out of the "verified" view
+          after about 18 months, so the map reflects what a place is like now.
+        </Section>
+
         <Section title="No ads, no tracking" COLORS={COLORS}>
-          ComfortMap doesn't run ads, analytics, or third-party trackers, and doesn't sell or share
-          your data with anyone.
+          ComfortMap doesn't run ads, and doesn't sell your data or use it for advertising. Your
+          sensory profile and the places you look up can reveal disability- or health-related
+          information — we treat that as sensitive, protected by access controls, and it's never
+          used for anything beyond running the app for you.
         </Section>
 
         <Section title="Your control" COLORS={COLORS}>
           You can edit or clear your language, profile, and sensory settings at any time from
-          Settings. Deleting a saved map removes it immediately and permanently — there's no
-          "undo" because there's no copy anywhere else to restore it from.
+          Settings. To delete your account, a specific report, or a photo/video you submitted,
+          email{' '}
+          <span style={{ color: COLORS.green, fontWeight: 600 }}>hello@comfortmap.app</span> from
+          your account email — we'll action deletion requests promptly.
+        </Section>
+
+        <Section title="Your rights, wherever you are" COLORS={COLORS}>
+          If you're in the UK or EU, Canada, or Australia, the same core rights apply under your
+          local law (UK/EU GDPR, Canada's PIPEDA, Australia's Privacy Act): you can ask what we
+          hold about you, correct it, ask us to delete it, and — where it applies — get a copy of
+          it. These are the same practical rights every ComfortMap user already has, listed here
+          explicitly so it's clear regardless of where you're using the app from. Email{' '}
+          <span style={{ color: COLORS.green, fontWeight: 600 }}>hello@comfortmap.app</span> for
+          any of these requests.
         </Section>
 
         <Section title="Changes to this policy" COLORS={COLORS}>
